@@ -1,0 +1,33 @@
+{
+    "name": "ESP32 IoT Framework",
+    "version": "0.0.1",
+    "description": "ESP32 Framework for IoT projects implementing HTTPS requests, a React web interface, WiFi manager, configuration manager, file manager and OTA updates.",
+    "keywords": "esp32,react,ota-updates,wifi-manager,https,file-manager",
+    "frameworks": "arduino",
+    "platforms": "espressif32",
+    "build": {
+        "extraScript": "scripts/preBuild.py",
+        "libArchive": false
+    },
+    "export": {
+        "exclude": [
+            "node_modules",
+            ".vscode",
+            "scripts/__pycache__"
+        ],
+        "include": [
+            "*",
+            ".*",
+            "*.*",
+            ".*.*",
+            "src/*.*",
+            "src/generated/*.*",
+            "scripts/*.*",
+            "gui/*.*",
+            "gui/js/*.*",
+            "gui/js/comp/*.*",
+            "gui/js/functions/*.*",
+            "gui/js/lang/*.*"
+        ]
+    }
+}

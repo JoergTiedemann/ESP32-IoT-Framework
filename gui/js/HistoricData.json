@@ -1,0 +1,11 @@
+[
+    {
+        "name": "timestamp",
+        "type": "char",
+        "length": 7
+    },
+    {
+        "name": "value",
+        "type": "uint32_t"
+    }
+]

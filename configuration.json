@@ -1,0 +1,289 @@
+[
+    {
+        "name": "projectName",
+        "label": "Project Name",
+        "type": "char",
+        "length": 32,
+        "value": "Heizungs-Monitor",
+        "hidden": true
+    },
+    {
+        "name": "projectVersion",
+        "label": "Projektversion",
+        "type": "char",
+        "length": 32,
+        "value": "V6.7",
+        "hidden": true
+    },
+    {
+        "name": "ResetGrund",
+        "label": "ResetGrund",
+        "type": "uint16_t",
+        "value": 0,
+        "hidden": true
+    },
+    {
+        "name": "ShowFilePage",        
+        "type": "bool",
+        "value": false,
+        "hidden": true
+    },
+    {
+        "name": "ShowFileFirmwarePage",        
+        "type": "bool",
+        "value": false,
+        "hidden": true
+    },
+    {
+        "name": "ShowWebFirmwarePage",        
+        "type": "bool",
+        "value": true,
+        "hidden": true
+    },
+    {
+        "name": "ShowDiagnosePage",        
+        "type": "bool",
+        "value": true,
+        "hidden": true
+    },
+    {
+        "name": "language",        
+        "type": "char",
+        "length": 3,
+        "value": "de",
+        "hidden": true
+    },
+    {
+        "type": "header",
+        "text": "Sensor"        
+    },
+    {
+        "name": "UseDMADC",        
+        "label": "DMA ADC verwenden (Restart erforderlich)",
+        "type": "bool",
+        "value": true
+    },
+    {
+        "name": "Ch1EinLevel",
+        "label": "Schwellenwert Heizung Ein (CH1)[A]",
+        "type": "float",
+        "value": 0.6
+    },
+    {
+        "name": "Ch2EinLevel",
+        "label": "Schwellenwert Drainage Ein (CH1)[A]",
+        "type": "float",
+        "value": 0.5
+    },
+    {
+        "name": "mVperAmp",
+        "label": "Sensortaufloesung [mV/A]",
+        "type": "float",
+        "value": 39.6
+    },
+    {
+        "name": "AmpOffset1",
+        "label": "CH1 Korrektur Offset [A]",
+        "type": "float",
+        "value": -0.1
+    },
+    {
+        "name": "AmpOffset2",
+        "label": "CH2 Korrektur Offset [A]",
+        "type": "float",
+        "value": -0.1
+    },
+    {
+        "type": "separator"
+    },
+    {
+        "type": "header",
+        "text": "Firebase Cloud"        
+    },
+    {
+        "name": "FirebaseUpdateIntervall",
+        "label": "FirebaseUpdateIntervall [ms]",
+        "type": "uint16_t",
+        "value": 25000
+    },
+    {
+        "name": "PrivateKeyFirst",
+        "label": "1.+2. Zeichen Private Key (MI)",
+        "type": "char",
+        "length": 4,
+        "value": ""
+    },
+    {
+        "name": "ConnectToCloud",        
+        "label": "mit Firebase-Cloud verbinden",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "UseStream",        
+        "label": "benutze Firebase Read-Stream",
+        "type": "bool",
+        "hidden": true,
+        "value": false
+    },
+    {
+        "name": "UseWatchdog",        
+        "label": "Firebase Watchdog starten (nur nach Neustart wirksam)",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "ImmerLogoutBeiError",        
+        "label": "Immer Relogin bei Firebase-Fehler",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "type": "separator"
+    },
+    {
+        "name": "FirmwareURL",
+        "label": "Firmware URL  (http://www...",
+        "type": "char",
+        "length": 60,
+        "value": "http://www.bierhoehle.de/Heizung.bin"
+    },
+    {
+        "name": "Messagelevel",
+        "label": "Meldungsfilter",
+        "type": "uint16_t",
+        "value": 2,
+        "control": "select",
+        "options": [
+            {"Label":"Fehler+Meldungen","Value":2},
+            {"Label":"nur Fehler","Value":1}
+        ]
+    },    
+    {
+        "type": "header",
+        "text": "Datenlogger"        
+    },
+    {
+        "name": "Ch1WarmwasserLevelMin1",
+        "label": "Schwellenwert 1 Warmwasser Min [A]",
+        "type": "float",
+        "value": 1.3
+    },
+    {
+        "name": "Ch1WarmwasserLevelMax1",
+        "label": "Schwellenwert 1 Warmwasser Max [A]",
+        "type": "float",
+        "value": 1.6
+    },
+    {
+        "name": "Ch1WarmwasserLevelMin2",
+        "label": "Schwellenwert 2 Warmwasser Min [A]",
+        "type": "float",
+        "value": 2.2
+    },
+    {
+        "name": "EnableAusfallDetektor",        
+        "label": "Heizungsausfall erkennen",
+        "type": "bool",
+        "value": true
+    },
+    {
+        "name": "StartFenster",        
+        "label": "Start Ausfallzeitfenster",
+        "type": "char",
+        "length": 20,
+        "value": "07:30:00"
+    },
+    {
+        "name": "EndFenster",        
+        "label": "Ende Ausfallzeitfenster",
+        "type": "char",
+        "length": 20,
+        "value": "22:00:00"
+    },
+    {
+        "name": "MaxPausenzeit",        
+        "label": "max. Pausenzeit [Min]",
+        "type": "uint16_t",
+        "value": 20
+    },
+    {
+        "type": "separator"
+    },
+    {
+        "name": "DrainageWarnmeldungZyklen",
+        "label": "Drainage Warmeldung Max Zyklen",
+        "type": "uint16_t",
+        "value": 3
+    },
+    {
+        "name": "DrainageWarnmeldungZeit",
+        "label": "Drainage Warmeldung Max Zeit [sek]",
+        "type": "uint16_t",
+        "value": 400
+    },
+    {
+        "type": "separator"
+    },
+   {
+        "type": "header",
+        "text": "Leistungslogger"        
+    },
+    {
+        "name": "SMLEnable",        
+        "label": "SML Reader aktivieren",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "PowerDifferenz",
+        "label": "Leistungsdifferenz [W]",
+        "type": "uint16_t",
+        "value": 50
+    },
+    {
+        "name": "EnablePeakFilter",        
+        "label": "Peakfilter (0=Aus) [Anzahl Messwerte]",
+        "type": "uint16_t",
+        "value": 4
+    },
+    {
+        "type": "separator"
+    },
+   {
+        "type": "header",
+        "text": "Solaranlage"        
+    },
+    {
+        "name": "SolarEnableGartenhaus",        
+        "label": "Solar Reader Gartenhaus aktivieren",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "IPAddressShellyGartenhaus",
+        "label": "IP-Adr. Shelly EM Gartenhaus",
+        "type": "char",
+        "length": 60,
+        "value": "http://192.168.178.118"
+    },
+    {
+        "name": "SolarEnableGarage",        
+        "label": "Solar Reader Garage aktivieren",
+        "type": "bool",
+        "value": false
+    },
+    {
+        "name": "IPAddressShellyGarage",
+        "label": "IP-Adr. Shelly EM Garage",
+        "type": "char",
+        "length": 60,
+        "value": "http://192.168.178.123"
+    },
+    {
+        "name": "Abfrageintervall",
+        "label": "Abfrageintervall [sec]",
+        "type": "uint16_t",
+        "value": 8
+    }
+]

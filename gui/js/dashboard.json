@@ -1,0 +1,171 @@
+[
+    {
+        "name": "aktuelleLaufzeit1",
+        "label": "Heizung Laufzeit [Sek]",
+        "type": "uint16_t",
+        "direction": "display"
+    },
+    {
+        "name": "aktuelleLaufzeit2",
+        "label": "Drainage Laufzeit [Sek]",
+        "type": "uint16_t",
+        "direction": "display"
+    },
+    {
+        "name": "Heizung",
+        "type": "bool",
+        "texttrue": "Ein",
+        "textfalse": "Aus",
+        "styletrue": "true",
+        "stylefalse": "gray",
+        "direction": "display"
+    },
+    {
+        "name": "Warmwasser",
+        "label": "Warmwasseraufbereitung",
+        "type": "bool",
+        "texttrue": "Ein",
+        "textfalse": "Aus",
+        "styletrue": "true",
+        "stylefalse": "gray",
+        "direction": "display"
+    },
+    {
+        "name": "Drainage",
+        "type": "bool",
+        "texttrue": "Ein",
+        "textfalse": "Aus",
+        "styletrue": "true",
+        "stylefalse": "gray",
+        "direction": "display"
+    },
+    {
+        "name": "PowerSum",
+        "label": "Gesamtleistung [W]",
+        "type": "int16_t",
+        "direction": "display"
+    },
+    {
+        "name": "PowerL1",
+        "label": "Leistung L1 [W]",
+        "type": "int16_t",
+        "direction": "display"
+    },
+    {
+        "name": "PowerL2",
+        "label": "Leistung L2 [W]",
+        "type": "int16_t",
+        "direction": "display"
+    },
+    {
+        "name": "PowerL3",
+        "label": "Leistung L3 [W]",
+        "type": "int16_t",
+        "direction": "display"
+    },
+    {
+        "name": "AktPowerSolarGartenhaus",
+        "label": "aktuelle Leistung Solar Gartenhaus [W]",
+        "type": "float",
+        "digits": 1,
+        "direction": "display"
+    },
+    {
+        "name": "AktReturnedGartenhaus",
+        "label": "erzeugte Energie Gartenhaus [KWh]",
+        "type": "float",
+        "digits": 3,
+        "direction": "display"
+    },
+    {
+        "name": "AktPowerSolarGarage",
+        "label": "aktuelle Leistung Solar Garage [W]",
+        "type": "float",
+        "digits": 1,
+        "direction": "display"
+    },
+    {
+        "name": "AktReturnedGarage",
+        "label": "erzeugte Energie Garage [KWh]",
+        "type": "float",
+        "digits": 3,
+        "direction": "display"
+    },
+    {
+        "name": "InputCurrent1",
+        "label": "Strom Heizung [A]",
+        "type": "float",
+        "digits": 3,
+        "direction": "display"
+    },
+    {
+        "name": "InputCurrent2",
+        "label": "Strom Drainage [A]",
+        "type": "float",
+        "digits": 3,
+        "direction": "display"
+    },
+    {
+        "name": "DisplayDiagnostic",
+        "label": "Display Anzeige",
+        "type": "uint16_t",
+        "direction": "control",
+        "control": "select",
+        "options": [
+            {"Label":"Standard","Value":0},
+            {"Label":"Stromsensor","Value":1},
+            {"Label":"Systemlog","Value":2}
+        ]
+    },
+
+    {
+        "name": "Testschalter1",
+        "label": "Simulation Heizung",
+        "type": "bool",
+        "hidden":false,
+        "direction": "control",
+        "display": "switch"
+    },
+    {
+        "name": "Testschalter2",
+        "label": "Simulation Drainage",
+        "type": "bool",
+        "hidden":false,
+        "direction": "control",
+        "display": "switch"
+    },
+    {
+        "name": "MessageTest",
+        "label": "Testnachricht senden",
+        "type": "bool",
+        "hidden":false,
+        "direction": "control",
+        "buttontextOn": "Senden",
+        "display": "button"
+    },
+    {
+        "name": "AnzeigeinMin",
+        "label": "Anzeige",
+        "type": "uint16_t",
+        "direction": "control",
+        "control": "select",
+        "options": [
+            {"Label":"Grafik zeigt Schaltzyklen","Value":0},
+            {"Label":"Grafik zeigt Laufzeit [Sek]","Value":1}
+        ]
+    },
+    {
+        "name": "Heizung",
+        "type": "historic1",
+        "direction": "display",
+        "alignment": "vertical",
+        "display": "barchart"
+    },
+    {
+        "name": "Pumpe",
+        "type": "historic2",
+        "direction": "display",
+        "alignment": "vertical",
+        "display": "barchart"
+    }
+]
