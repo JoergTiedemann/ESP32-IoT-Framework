@@ -1,6 +1,6 @@
 {
-    "name": "ESP32 IoT Framework",
-    "version": "0.0.1",
+    "name": "ESP32-IoT-Framework",
+    "version": "0.0.3",
     "description": "ESP32 Framework for IoT projects implementing HTTPS requests, a React web interface, WiFi manager, configuration manager, file manager and OTA updates.",
     "keywords": "esp32,react,ota-updates,wifi-manager,https,file-manager",
     "frameworks": "arduino",
