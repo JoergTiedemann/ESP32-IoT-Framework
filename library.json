@@ -1,6 +1,6 @@
 {
     "name": "ESP32-IoT-Framework",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "ESP32 Framework for IoT projects based on famous ESP8266 IoT Framework from MaakBaas implementing HTTPS requests, a React web interface, WiFi manager, configuration manager, file manager and OTA updates.",
     "keywords": "esp32,react,ota-updates,wifi-manager,https,file-manager",
     "authors": [
