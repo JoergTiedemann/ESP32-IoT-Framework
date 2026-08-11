@@ -1,4 +1,4 @@
-# ESP32 IoT Framework ![Status](https://travis-ci.com/maakbaas/esp8266-iot-framework.svg?branch=master)
+# ESP32 IoT Framework 
 <p><strong>
 This is a fork from the famous ESP8266-IoT-Library from maakbas: <BR>
 <a href="https://github.com/maakbaas/esp8266-iot-framework">maakbaas/esp8266-iot-framework</a><BR>
