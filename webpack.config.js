@@ -41,28 +41,10 @@ module.exports = (env, argv) => ({
                 test: /\.css$/,
                 use: [MiniCssExtractPlugin.loader, "css-loader"],
             },
-            {
-                test: /\.(jpg|png|gif|svg)$/,
-                use: [
-                    {
-                        loader: "url-loader",
-                        options: {
-                            limit: 10000,
-                            name: "[name].[ext]",
-                            outputPath: "img/",
-                            publicPath: "img/",
-                        },
-                    },
-                    {
-                        loader: "image-webpack-loader",
-                        options: {
-                            pngquant: {
-                                quality: "20-40",
-                            },
-                        },
-                    },
-                ],
-            },
+			{
+			  test: /\.(png|jpe?g|gif)$/i,
+			  type: 'asset/resource'
+			}
         ],
     },
 
