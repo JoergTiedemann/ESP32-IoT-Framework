@@ -1,6 +1,6 @@
 {
     "name": "ESP32-IoT-Framework",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "ESP32 Framework for IoT projects based on famous ESP8266 IoT Framework from MaakBaas implementing HTTPS requests, a React web interface, WiFi manager, configuration manager, file manager and OTA updates.",
     "keywords": "esp32,react,ota-updates,wifi-manager,https,file-manager",
     "authors": [
@@ -10,6 +10,11 @@
         "url": "https://github.com/JoergTiedemann"
         }
     ],
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/JoergTiedemann/ESP32-IoT-Framework.git"
+    },
+
     "license": "GPL-3.0-or-later",
     "frameworks": "arduino",
     "platforms": "espressif32",
@@ -17,9 +22,20 @@
         "extraScript": "scripts/preBuild.py",
         "libArchive": false
     },
+    "dependencies": [
+        {
+        "name": "ESP32Async/ESPAsyncWebServer",
+        "version": "^3.11.2"
+        },
+        {
+        "name": "mobizt/FirebaseJson",
+        "version": "^3.0.9"
+        }
+    ],
     "export": {
         "exclude": [
             "node_modules",
+            "src/generated",
             ".vscode",
             "scripts/__pycache__"
         ],
@@ -29,7 +45,6 @@
             "*.*",
             ".*.*",
             "src/*.*",
-            "src/generated/*.*",
             "scripts/*.*",
             "gui/*.*",
             "gui/js/*.*",
@@ -39,3 +54,4 @@
         ]
     }
 }
+
