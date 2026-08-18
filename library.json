@@ -24,12 +24,14 @@
     },
     "dependencies": [
         {
-        "name": "ESP32Async/ESPAsyncWebServer",
-        "version": "^3.11.2"
+          "owner": "ESP32Async",
+          "name": "ESPAsyncWebServer",
+          "version": "^3.11.2"
         },
         {
-        "name": "mobizt/FirebaseJson",
-        "version": "^3.0.9"
+          "owner": "ESP32Async",
+          "name": "FirebaseJson",
+          "version": "^3.0.9"
         }
     ],
     "export": {
