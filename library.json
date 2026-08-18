@@ -29,7 +29,7 @@
           "version": "^3.11.2"
         },
         {
-          "owner": "ESP32Async",
+          "owner": "mobitz",
           "name": "FirebaseJson",
           "version": "^3.0.9"
         }
