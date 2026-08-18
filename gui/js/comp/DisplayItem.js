@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-import "../../../node_modules/react-vis/dist/style.css";
+import "../../../../../../../node_modules/react-vis/dist/style.css";
 import { FlexibleWidthXYPlot, XAxis, YAxis, HorizontalGridLines, VerticalGridLines, LineSeries,VerticalBarSeries,LabelSeries } from "react-vis";
 
 export function DisplayItem(props) {
