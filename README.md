@@ -84,10 +84,19 @@ In the directroy .pio\libdeps\esp32dev\ESP32-IoT-Framework execute the following
 ```
 node scripts/install-to-root.js 
 ```
-to install the required node packages
-Add this line to platformio.ini file
+to install the required node packages and package.json and babel.config.js to project root directory
+For Over-The-Air Updates it is highly recommended to use min_spiffs partition sheme 
+So add this lines to platformio.ini file
 ```
 extra_scripts = .pio/libdeps/esp32dev/ESP32-IoT-Framework/scripts/add_lib_info.py
+build_flags = 
+	-DREBUILD_HTML
+	-DDASHBOARD_PATH=dashboard.json
+	-DREBUILD_DASHBOARD
+	-DCONFIG_PATH=configuration.json
+	-DREBUILD_CONFIG
+
+board_build.partitions = min_spiffs.csv
 ```
 
 ## Quick start

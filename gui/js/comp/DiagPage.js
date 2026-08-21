@@ -17,7 +17,7 @@ export function DiagPage(props) {
         document.title = loc.titleDiagnostic;
     }, []);
 
-    return <><h2>Joergg:{loc.titleDiagnostic}</h2><DiagListing API={props.API} /></>;
+    return <><h2>{loc.titleDiagnostic}</h2><DiagListing API={props.API} /></>;
 
 }
 
