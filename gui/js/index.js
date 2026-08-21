@@ -59,22 +59,26 @@ function Root() {
             const timestamp = dv.getUint32(0, true);
             // als 2. die Laenge der Dashboarddatenstruktur 
             const dashsize   = dv.getUint32(4, true);
-            // als 3. die Laenge des Arrays fuer historische Daten (dieses kommt aber 2mal)
+            // als 3. die Laenge des Arrays fuer historische Daten 
             const historicArraylength  = dv.getUint32(4+4, true);
+            // als 4. die Anzahl der  historische Daten 
+            const historicDataSetCount  = dv.getUint32(4+4+4, true);
             // nun die eigentlichen Dashdaten 
-            displayData.push([timestamp, bin2obj(buffer.slice(12,12+dashsize), Dash)]);     
+            displayData.push([timestamp, bin2obj(buffer.slice(16,16+dashsize), Dash)]);     
             // nun die historischen Arraydaten  
-            if (historicArraylength > 0)
+            // console.log("wsMessage  HisticDataSetCount:",historicDataSetCount);
+            if (historicDataSetCount > 0)
             {
-                const ArrElementlength = (buffer.byteLength-12-dashsize) / (historicArraylength*2);
+                const ArrElementlength = (buffer.byteLength-16-dashsize) / (historicArraylength*historicDataSetCount);
                 // console.log("ArrElementlength:",ArrElementlength,"HistoricArraylength:",historicArraylength);
                 // erstmal alles loeschen
                 historicArrayData1.length = 0;
                 historicArrayData2.length = 0;
                 for (let i = 0; i < historicArraylength; i++) 
                 {
-                    historicArrayData1.push(bin2obj(buffer.slice(12+dashsize+i*ArrElementlength,12+dashsize+(i+1)*ArrElementlength), HistoricData));     
-                    historicArrayData2.push(bin2obj(buffer.slice(12+dashsize+(historicArraylength*ArrElementlength)+i*ArrElementlength,12+dashsize+(historicArraylength*ArrElementlength)+(i+1)*ArrElementlength), HistoricData));     
+                    historicArrayData1.push(bin2obj(buffer.slice(16+dashsize+i*ArrElementlength,16+dashsize+(i+1)*ArrElementlength), HistoricData));
+                    if (historicDataSetCount == 2)
+                        historicArrayData2.push(bin2obj(buffer.slice(16+dashsize+(historicArraylength*ArrElementlength)+i*ArrElementlength,16+dashsize+(historicArraylength*ArrElementlength)+(i+1)*ArrElementlength), HistoricData));     
                 }
                 //  console.log("Arrayinhalt Array 1");
                 //  for (let i = 0; i < historicArraylength; i++) 

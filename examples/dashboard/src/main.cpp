@@ -108,7 +108,51 @@ void loop()
 
         String stringOne = "Apples";
         stringOne.toCharArray(dash.data.projectName,32);
+
+
+        /*
+        to show first historic data set, we fill the historicdata1 array with some values
+        and you have to add folowing Json to dashboard.json
+        {
+            "name": "Laufzeitverhalten",
+            "type": "historic1",
+            "direction": "display",
+            "alignment": "vertical",
+            "display": "barchart"
+        },
+        */
+        for (int i = 0; i < cihistoricdatalength;i++)
+        {
+            String tmpstr;
+            char buffer [80];
+            sprintf(buffer, "%d.10", i+1);
+            tmpstr = String(buffer);
+            tmpstr.toCharArray(dash.historicdata1[i].strTimestamp,7);
+            dash.historicdata1[i].uiValue = i*10+100;
+        }
+
+        /*
+        to show second historic data set, we fill the historicdata2 array with some values
+        and you have to add folowing Json to dashboard.json
+        {
+            "name": "Laufzeitverhalten2",
+            "type": "historic2",
+            "direction": "display",
+            "alignment": "vertical",
+            "display": "barchart"
+        },
+        */
+        for (int i = 0; i < cihistoricdatalength;i++)
+        {
+            String tmpstr;
+            char buffer [80];
+            sprintf(buffer, "%d.12", i+1);
+            tmpstr = String(buffer);
+            tmpstr.toCharArray(dash.historicdata2[i].strTimestamp,7);
+            dash.historicdata2[i].uiValue = 1000-(i*10+111);
+        }
         
+
         dash.data.dummyInt++;
         dash.data.inputInt++;
 

@@ -29,6 +29,20 @@
         "xaxis": 20
     },
     {
+        "name": "Laufzeitverhalten",
+        "type": "historic1",
+        "direction": "display",
+        "alignment": "vertical",
+        "display": "barchart"
+    },
+    {
+        "name": "Laufzeitverhalten2",
+        "type": "historic2",
+        "direction": "display",
+        "alignment": "vertical",
+        "display": "barchart"
+    },
+    {
         "name": "inputInt",
         "type": "uint16_t",
         "direction": "control"

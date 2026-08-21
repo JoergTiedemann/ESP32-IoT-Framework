@@ -76,6 +76,33 @@ To define a combobox control in dashboard or configuration page use the followin
     },    
 ```
 
+### display historical Data in a barchart in dashboard 
+To define a barchart graph to display hisorical data use the following code in dashboard.json
+```
+    {
+        "name": "Laufzeitverhalten",
+        "type": "historic1",
+        "direction": "display",
+        "alignment": "vertical",
+        "display": "barchart"
+    }, 
+```
+You have to load the historical data array with corresponding data i.e.
+```
+        for (int i = 0; i < cihistoricdatalength;i++)
+        {
+            String tmpstr;
+            char buffer [80];
+            sprintf(buffer, "%d.10", i+1);
+            tmpstr = String(buffer);
+            tmpstr.toCharArray(dash.historicdata1[i].strTimestamp,7);
+            dash.historicdata1[i].uiValue = i*10+100;
+        }
+```
+You can at least transmit 2 datasets (array of 10 elements) of historical data to the dashboard
+therefore use the type historic1 and historic2 in dashboard.json and dash.historicdata1 and dash.historicdata2 in the esp code
+
+
 ## Requirements
 This Library requires adruino espressif framework 3.3.9 from the pioarduino project  
 For the webserver the html code is base on react and node modules  

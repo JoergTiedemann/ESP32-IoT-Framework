@@ -20,7 +20,7 @@ void dashboard::loop()
 void dashboard::send()
 {
     //send data, first 32bit timestamp and then the binary data structure
-    uint8_t buffer[sizeof(data) + 4 + 4 + 4 + sizeof(historicdata1) + sizeof(historicdata2)];
+    uint8_t buffer[sizeof(data) + 4 + 4 + 4 + 4 + sizeof(historicdata1) + sizeof(historicdata2)];
 
     unsigned long now = millis();
     memcpy(buffer, reinterpret_cast<uint8_t *>(&now), 4);
@@ -30,16 +30,24 @@ void dashboard::send()
     unsigned long historicdatalength = cihistoricdatalength;
     memcpy(buffer + 4 + 4, reinterpret_cast<uint8_t *>(&historicdatalength), 4);
 
-    memcpy(buffer + 4 + 4 + 4, reinterpret_cast<uint8_t *>(&data), sizeof(data));
+    unsigned long DatSetCount = ciHistoricDatasetCount;
+    memcpy(buffer + 4 + 4 + 4, reinterpret_cast<uint8_t *>(&DatSetCount), 4);
 
-    memcpy(buffer + 4 + 4 + 4 + sizeof(data), reinterpret_cast<uint8_t *>(&historicdata1), sizeof(historicdata1));
 
-    memcpy(buffer + 4 + 4 + 4 + sizeof(data) + sizeof(historicdata1), reinterpret_cast<uint8_t *>(&historicdata2), sizeof(historicdata2));
+    memcpy(buffer + 4 + 4 + 4 + 4, reinterpret_cast<uint8_t *>(&data), sizeof(data));
+
+    memcpy(buffer + 4 + 4 + 4 + 4 + sizeof(data), reinterpret_cast<uint8_t *>(&historicdata1), sizeof(historicdata1));
+
+    memcpy(buffer + 4 + 4 + 4 + 4 + sizeof(data) + sizeof(historicdata1), reinterpret_cast<uint8_t *>(&historicdata2), sizeof(historicdata2));
 
     // Serial.printf("Dashsize:%d historicdatalegth:%d historicsize:%d buffersize:%d \n",dashdatalength,historicdatalength,sizeof(historicdata),sizeof(buffer));
     // Serial.printf(" 2. historicdata Value Index 0:%d \n",historicdata2[0].uiValue);
-    
-    GUI.ws.binaryAll(buffer, sizeof(buffer));
+    if (ciHistoricDatasetCount == 0)
+        GUI.ws.binaryAll(buffer, sizeof(buffer)- sizeof(historicdata1) - sizeof(historicdata2));
+    else if (ciHistoricDatasetCount == 1)
+        GUI.ws.binaryAll(buffer, sizeof(buffer)- sizeof(historicdata1));
+    else 
+        GUI.ws.binaryAll(buffer, sizeof(buffer));
 }
 
 void dashboard::onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *dataIn, size_t len)

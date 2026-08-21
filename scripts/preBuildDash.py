@@ -31,6 +31,7 @@ def preBuildDashFun():
 
     print("preBuildDashFun: Lese Dashboard von:", str(src_dashboard))
     # print("preBuildDashFun: Schreibe dash.h nach:", str(h_path))
+    historicdataCount = "0"
 
     # Lade JSON
     with open(src_dashboard, "r", encoding="utf8") as f:
@@ -54,15 +55,20 @@ def preBuildDashFun():
                     print("Attention: historicdata used! Only 1 historicdata array is allowed !, it has to be send after dashdata! ")
                     print("*********************************************************************************************************")
                     print("*********************************************************************************************************")
+                    historicdataCount = "1"
                 elif item['type'] == 'historic1' or item['type'] == 'historic2':
                     print("*********************************************************************************************************")
                     print("*********************************************************************************************************")
                     print("Attention: historicdata used! Exactly 2 historicdata arrays must be send after dashdata! ")
                     print("*********************************************************************************************************")
                     print("*********************************************************************************************************")
+                    if historicdataCount != '2' and item['type'] == 'historic1':
+                      historicdataCount = "1"
+                    if item['type'] == 'historic2':
+                      historicdataCount = "2"
                 else:
                     h.write("\t" + item['type'] + " " + item['name'] +";\n")
 
-        h.write("};\n\n#endif\n")
-
+        h.write("};\n\n")
+        h.write("const int ciHistoricDatasetCount =" +historicdataCount +";\n\n#endif\n")
     print("preBuildDashFun: Datei erzeugt:", str(h_path))
