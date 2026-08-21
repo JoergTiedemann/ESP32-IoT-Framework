@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { FirmwareListing } from "./FirmwareListing";  
 
 
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");

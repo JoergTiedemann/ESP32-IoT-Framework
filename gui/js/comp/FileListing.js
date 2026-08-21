@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { Fetch, Flex, RedButton, Button, buttonStyle, cPrimary, Alert, Spinner } from "./UiComponents";
 import { FiFile as File, FiTrash2 as Trash2, FiDownload as Download } from "react-icons/fi";
 
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");

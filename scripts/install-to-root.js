@@ -8,8 +8,16 @@ function run(cmd, opts = {}) {
   execSync(cmd, { stdio: "inherit", ...opts });
 }
 
+function backupIfExists(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  const now = new Date().toISOString().replace(/[:.]/g, "-");
+  const bak = `${filePath}.bak.${now}`;
+  fs.copyFileSync(filePath, bak);
+  console.log("Backup erstellt:", bak);
+}
+
 try {
-  // Pfad der Script-Datei; Library-Ordner ist zwei Ebenen höher, passe an wenn nötig
+  // Pfad der Script-Datei; Library-Ordner ist eine Ebene höher (scripts/)
   const scriptDir = path.resolve(__dirname);
   const libDir = path.resolve(scriptDir, ".."); // wenn script in scripts/, libDir = ../
   // Ziel: vier Ebenen höher relativ zur Library
@@ -25,6 +33,7 @@ try {
     fs.mkdirSync(target, { recursive: true });
   }
 
+  // Quell- und Zielpfade für package.json / package-lock.json
   const srcPkg = path.join(libDir, "package.json");
   const srcLock = path.join(libDir, "package-lock.json");
   if (!fs.existsSync(srcPkg)) {
@@ -35,16 +44,11 @@ try {
   const tgtLock = path.join(target, "package-lock.json");
 
   // Backup vorhandener Dateien im Ziel
-  const now = new Date().toISOString().replace(/[:.]/g, "-");
   if (fs.existsSync(tgtPkg)) {
-    const bak = tgtPkg + ".bak." + now;
-    console.log("Backup vorhandener package.json ->", bak);
-    fs.copyFileSync(tgtPkg, bak);
+    backupIfExists(tgtPkg);
   }
   if (fs.existsSync(tgtLock)) {
-    const bak2 = tgtLock + ".bak." + now;
-    console.log("Backup vorhandener package-lock.json ->", bak2);
-    fs.copyFileSync(tgtLock, bak2);
+    backupIfExists(tgtLock);
   }
 
   // Kopiere package.json und optional package-lock.json
@@ -57,7 +61,38 @@ try {
     console.log("Keine package-lock.json in der Library gefunden. Install ohne Lockfile.");
   }
 
-  // npm ausführen: ci wenn lock vorhanden, sonst install
+  // --- NEU: babel.config.js / babel.config.json kopieren ---
+  const srcBabelJs = path.join(libDir, "babel.config.js");
+  const srcBabelJson = path.join(libDir, "babel.config.json");
+  const tgtBabelJs = path.join(target, "babel.config.js");
+  const tgtBabelJson = path.join(target, "babel.config.json");
+
+  if (fs.existsSync(srcBabelJs)) {
+    console.log("Gefundene babel.config.js in Library. Sichere ggf. vorhandene Datei und kopiere...");
+    if (fs.existsSync(tgtBabelJs)) backupIfExists(tgtBabelJs);
+    fs.copyFileSync(srcBabelJs, tgtBabelJs);
+    console.log("Kopiert: babel.config.js ->", tgtBabelJs);
+  } else if (fs.existsSync(srcBabelJson)) {
+    console.log("Gefundene babel.config.json in Library. Sichere ggf. vorhandene Datei und kopiere...");
+    if (fs.existsSync(tgtBabelJson)) backupIfExists(tgtBabelJson);
+    fs.copyFileSync(srcBabelJson, tgtBabelJson);
+    console.log("Kopiert: babel.config.json ->", tgtBabelJson);
+  } else {
+    // Fallback: prüfe auch auf .babelrc (falls der Nutzer das verwendet)
+    const srcBabelRc = path.join(libDir, ".babelrc");
+    const tgtBabelRc = path.join(target, ".babelrc");
+    if (fs.existsSync(srcBabelRc)) {
+      console.log("Gefundene .babelrc in Library. Sichere ggf. vorhandene Datei und kopiere...");
+      if (fs.existsSync(tgtBabelRc)) backupIfExists(tgtBabelRc);
+      fs.copyFileSync(srcBabelRc, tgtBabelRc);
+      console.log("Kopiert: .babelrc ->", tgtBabelRc);
+    } else {
+      console.log("Keine babel.config.js / babel.config.json / .babelrc in der Library gefunden. Nichts kopiert.");
+    }
+  }
+  // --- ENDE NEU ---
+
+  // npm ausfÃ¼hren: ci wenn lock vorhanden, sonst install
   console.log("Starte npm im Zielverzeichnis...");
   if (fs.existsSync(tgtLock)) {
     run(`npm ci --prefix "${target}" --no-audit --no-fund`);
@@ -67,7 +102,7 @@ try {
   }
 
   console.log("Installation im Ziel abgeschlossen.");
-  console.log("Wichtig: Passe ggf. webpack.config.js an, damit resolve.modules den Pfad '../../../../node_modules' enthält.");
+  console.log("Wichtig: Passe ggf. webpack.config.js an, damit resolve.modules den Pfad '../../../../node_modules' enthÃ¤lt.");
 } catch (err) {
   console.error("FEHLER:", err && err.message ? err.message : err);
   process.exit(1);

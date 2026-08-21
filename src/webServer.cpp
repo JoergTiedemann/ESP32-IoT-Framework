@@ -17,7 +17,7 @@
 
 
 // Include the header file we create with webpack
-#include "generated/html.h"
+#include "../../../../../src/generated/html.h"
 
 //Access to other classes for GUI functions
 #include "WiFiManager.h"
@@ -26,9 +26,10 @@
 #include "dashboard.h"
 #include "DiagManager.h"
 #include "OTAManager.h"
+#include "BoardsInformation.h"
 
 
-void webServer::begin(WebserverGetLibraryVersionCallback getLibraryVersionCallback,UpdateDiagDisplayCallback diagDisplayCallback,GetDiagDataCallback pGetDiagDataCallback)
+void webServer::begin(UpdateDiagDisplayCallback diagDisplayCallback,GetDiagDataCallback pGetDiagDataCallback)
 {
 #ifdef ESP32
     // TODO: Remove enter/exit traces after ESP32 build stable.  Experienced frequent crashing
@@ -36,7 +37,7 @@ void webServer::begin(WebserverGetLibraryVersionCallback getLibraryVersionCallba
     Serial.println(PSTR("webServer::begin enter"));
 #endif
     m_GetDiagDataCallback = pGetDiagDataCallback;
-    m_getLibraryVersionCallback = getLibraryVersionCallback;
+    m_getLibraryVersionCallback = BoardInformation.SendLibraryVersion;
     m_diagDisplayCallback = diagDisplayCallback;
     m_bRestartActive = false;
     //to enable testing and debugging of the interface

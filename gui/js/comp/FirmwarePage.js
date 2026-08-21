@@ -7,7 +7,7 @@ import { FileListing } from "./FileListing";
 import { Card, Flex, cSecondary, Button, DisabledButton, Confirmation, Alert, Spinner} from "./UiComponents";
 import { FiZap as Zap, FiPower as Power } from "react-icons/fi";
 
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");

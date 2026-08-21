@@ -11,7 +11,7 @@ export const cHeaderHover = "#333";
 export const cSecondary = "#ff00cc";
 export const cSecondaryHover = "#cc0099"; 
 
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");

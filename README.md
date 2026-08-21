@@ -82,10 +82,13 @@ For the webserver the html code is base on react and node modules
 You have to install the node modules manually.  
 In the directroy .pio\libdeps\esp32dev\ESP32-IoT-Framework execute the following comand 
 ```
-npm install 
+node scripts/install-to-root.js 
 ```
 to install the required node packages
-
+Add this line to platformio.ini file
+```
+extra_scripts = .pio/libdeps/esp32dev/ESP32-IoT-Framework/scripts/add_lib_info.py
+```
 
 ## Quick start
 If you are new to PlatformIO, start with the [installation guide](https://github.com/maakbaas/esp8266-iot-framework/blob/master/docs/installation-guide.md). Otherwise, simply start a new project for your ESP32, and add the following line to your `platformio.ini` file:

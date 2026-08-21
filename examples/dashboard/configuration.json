@@ -4,7 +4,7 @@
         "label": "Project Name",
         "type": "char",
         "length": 32,
-        "value": "Testprojekt",
+        "value": "Demo-Monitor",
         "hidden": true
     },
     {
@@ -57,29 +57,24 @@
         "value": 0.6
     },
     {
-        "name": "Ch2EinLevel",
-        "label": "Schwellenwert Drainage Ein (CH1)[A]",
-        "type": "float",
-        "value": 0.5
+        "type": "separator"
     },
     {
-        "name": "mVperAmp",
-        "label": "Sensortaufloesung [mV/A]",
-        "type": "float",
-        "value": 39.6
+        "type": "header",
+        "text": "Firebase Cloud"        
     },
     {
-        "name": "AmpOffset1",
-        "label": "CH1 Korrektur Offset [A]",
-        "type": "float",
-        "value": -0.1
+        "name": "FirebaseUpdateIntervall",
+        "label": "FirebaseUpdateIntervall [ms]",
+        "type": "uint16_t",
+        "value": 25000
     },
     {
         "name": "FirmwareURL",
         "label": "Firmware URL  (http://www...",
         "type": "char",
         "length": 60,
-        "value": "http://www.testurl.de/firmware.bin"
+        "value": "http://www.meineUrl.de/firmware.bin"
     },
     {
         "name": "Messagelevel",
@@ -91,5 +86,5 @@
             {"Label":"Fehler+Meldungen","Value":2},
             {"Label":"nur Fehler","Value":1}
         ]
-    }    
+    }   
 ]

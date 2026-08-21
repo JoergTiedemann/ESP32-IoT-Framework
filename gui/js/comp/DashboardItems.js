@@ -4,7 +4,7 @@ import styled from "styled-components";
 
 import { ControlItem } from "./ControlItem";
 import { DisplayItem } from "./DisplayItem";
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");

@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { Button } from "./UiComponents";
 import { FiUpload as Upload } from "react-icons/fi";
 
-import Dash from "../dashboard.json";
+import Dash from "../../../../../../../dashboard.json";
 import { binsize } from "./../functions/configHelpers";
 import Toggle from 'react-toggle'
 import "react-toggle/style.css" // 

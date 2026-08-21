@@ -2,7 +2,7 @@
 #define DASHBOARD_H
 
 #include <ESPAsyncWebServer.h>
-#include "generated/dash.h"
+#include "../../../../../src/generated/dash.h"
 #include "historicdata.h"
 const int cihistoricdatalength = 10;
 

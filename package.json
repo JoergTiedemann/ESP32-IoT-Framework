@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server --mode=development --history-api-fallback",
-    "build": "SET NODE_OPTIONS=--openssl-legacy-provider && webpack --mode=production",
+    "build": "SET NODE_OPTIONS=--openssl-legacy-provider && npx webpack --config .\\.pio\\libdeps\\esp32dev\\ESP32-IoT-Framework\\webpack.config.js --mode production",
     "lint": "eslint \"./**/*.js\""
   },
   "author": "JoergTiedremann",

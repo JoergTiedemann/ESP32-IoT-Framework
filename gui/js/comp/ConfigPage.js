@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 
-import Config from "../configuration.json";
+import Config from "../../../../../../../configuration.json";
 import { obj2bin } from "../functions/configHelpers";
 
 import { Form, Button } from "./UiComponents";

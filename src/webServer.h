@@ -33,7 +33,7 @@ private:
     AsyncWebServer server;
     AsyncWebSocket ws;
     ArRequestHandlerFunction requestHandler = serveProgmem;
-    void begin(WebserverGetLibraryVersionCallback getLibraryVersionCallback = NULL,UpdateDiagDisplayCallback diagDisplayCallback = NULL,GetDiagDataCallback pGetDiagDataCallback = NULL);
+    void begin(UpdateDiagDisplayCallback diagDisplayCallback = NULL,GetDiagDataCallback pGetDiagDataCallback = NULL);
     webServer():server(80),ws("/ws"){};
 };
 

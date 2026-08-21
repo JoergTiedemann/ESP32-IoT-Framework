@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 #include "IPAddress.h"
-#include "generated/config.h"
+#include "../../../../../src/generated/config.h"
 
 #ifdef ESP32
 #include <functional>

@@ -11,6 +11,18 @@ const path = require("path");
 const del = require("del");
 const zlib = require("zlib");
 
+// Projekt-Root (das aktuelle Arbeitsverzeichnis beim Starten des Builds)
+const projectRoot = path.resolve(process.cwd());
+// Pfad relativ zur Config-Datei (falls du lokal baust)
+const configRelativeNodeModules = path.resolve(__dirname, "../../../../node_modules");
+
+// Debugausgaben
+console.log("WEBPACK CONFIG LOADED");
+console.log("BUILD CWD (projectRoot):", projectRoot);
+console.log("CONFIG DIR (__dirname):", __dirname);
+console.log("project node_modules:", path.join(projectRoot, "node_modules"));
+console.log("configRelativeNodeModules:", configRelativeNodeModules);
+
 module.exports = (env, argv) => ({
   context: path.resolve(__dirname),
 
@@ -19,13 +31,13 @@ module.exports = (env, argv) => ({
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js",
-    publicPath: "" // falls du relative Pfade brauchst
+    publicPath: ""
   },
 
-  // Webpack filesystem cache in das zentrale node_modules/.cache legen
+  // Webpack filesystem cache in das zentrale node_modules/.cache legen (priorisiert projectRoot)
   cache: {
     type: "filesystem",
-    cacheDirectory: path.resolve(__dirname, "../../../../node_modules/.cache/webpack")
+    cacheDirectory: path.resolve(projectRoot, "node_modules/.cache/webpack")
   },
 
   module: {
@@ -36,7 +48,7 @@ module.exports = (env, argv) => ({
         use: {
           loader: "babel-loader",
           options: {
-            cacheDirectory: path.resolve(__dirname, "../../../../node_modules/.cache/babel-loader")
+            cacheDirectory: path.resolve(projectRoot, "node_modules/.cache/babel-loader")
           }
         },
       },
@@ -82,10 +94,11 @@ module.exports = (env, argv) => ({
     minimize: true,
   },
 
-  // Wichtig: Module und Loader im Root-node_modules suchen
   resolve: {
+    extensions: ['.js', '.jsx', '.json'],
     modules: [
-      path.resolve(__dirname, "../../../../node_modules"),
+      path.join(projectRoot, "node_modules"),
+      configRelativeNodeModules,
       "node_modules"
     ],
     alias: {
@@ -96,7 +109,8 @@ module.exports = (env, argv) => ({
 
   resolveLoader: {
     modules: [
-      path.resolve(__dirname, "../../../../node_modules"),
+      path.join(projectRoot, "node_modules"),
+      configRelativeNodeModules,
       "node_modules"
     ]
   },
@@ -104,7 +118,7 @@ module.exports = (env, argv) => ({
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebPackPlugin({
-      template: "./gui/index.html",
+      template: path.resolve(__dirname, "gui", "index.html"),
       filename: "index.html",
       inlineSource: ".(js|css)$",
     }),
@@ -113,18 +127,23 @@ module.exports = (env, argv) => ({
       cleanAfterEveryBuildPatterns: ["**/*.js", "**/*.html", "**/*.css", "**/*.js.gz", "**/*.css.gz"],
     }),
     new HtmlWebpackInlineSourcePlugin(),
-    // CompressionPlugin kann bleiben; der Hook erzeugt die gz selbst falls nötig
     new CompressionPlugin(),
 
-    // Robuster done-Hook: liest dist/index.html, gzippt es selbst und erzeugt die C-Header-Datei.
+    // done-Hook: erzeugt gz aus dist/index.html und schreibt html.h in projectRoot/src/generated
     new EventHooksPlugin({
       done: () => {
         if (argv.mode === "production") {
           try {
-            const distDir = path.resolve(__dirname, "dist");
+            const distDir = path.resolve(__dirname, "dist"); // dist der Config (Library)
             const htmlPath = path.join(distDir, "index.html");
             const gzPath = path.join(distDir, "index.html.gz");
-            const destination = path.resolve(__dirname, "src", "generated", "html.h");
+
+            // NEU: Ziel unterhalb des Projekt-Root
+            const destination = path.resolve(projectRoot, "src", "generated", "html.h");
+
+            console.log("done-hook: distDir =", distDir);
+            console.log("done-hook: htmlPath =", htmlPath);
+            console.log("done-hook: destination (projectRoot/src/generated/html.h) =", destination);
 
             if (!fs.existsSync(htmlPath)) {
               console.warn("Warnung: dist/index.html nicht gefunden — überspringe Erzeugung von html.h");
@@ -136,7 +155,7 @@ module.exports = (env, argv) => ({
             const gzBuffer = zlib.gzipSync(htmlBuffer);
             fs.writeFileSync(gzPath, gzBuffer);
 
-            // Header-Datei schreiben
+            // Header-Datei schreiben (in projectRoot/src/generated)
             const data = gzBuffer;
             const outDir = path.dirname(destination);
             if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });

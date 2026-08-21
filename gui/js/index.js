@@ -15,8 +15,8 @@ import { WebFirmwarePage } from "./comp/WebFirmwarePage";
 
 import { bin2obj } from "./functions/configHelpers";
 
-import Config from "./configuration.json";
-import Dash from "./dashboard.json";
+import Config from "../../../../../../configuration.json";
+import Dash from "../../../../../../dashboard.json";
 import HistoricData from "./HistoricData.json";
 
 
@@ -162,7 +162,7 @@ return <><GlobalStyle />
         <BrowserRouter>
 
             <Header>
-                <h1><HeaderIcon style={{verticalAlign:"-0.1em"}} /> Joerg:{projectName} {projectVersion}</h1>
+                <h1><HeaderIcon style={{verticalAlign:"-0.1em"}} /> {projectName} {projectVersion}</h1>
 
                 <Hamburger onClick={() => setMenu(!menu)} />
                 <Menu className={menu ? "" : "menuHidden"}>

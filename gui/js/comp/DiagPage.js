@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 import { DiagListing } from "./DiagListing";  
 
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");
@@ -17,7 +17,7 @@ export function DiagPage(props) {
         document.title = loc.titleDiagnostic;
     }, []);
 
-    return <><h2>{loc.titleDiagnostic}</h2><DiagListing API={props.API} /></>;
+    return <><h2>Joergg:{loc.titleDiagnostic}</h2><DiagListing API={props.API} /></>;
 
 }
 

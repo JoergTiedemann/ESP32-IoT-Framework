@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-import Dash from "../dashboard.json";
+import Dash from "../../../../../../../dashboard.json";
 
 import { Form } from "./UiComponents";
 import { DashboardItems } from "./DashboardItems";
@@ -38,7 +38,7 @@ const Disconnected = styled.span`
     vertical-align:0.3em;
 `;
 
-import Config from "./../configuration.json";
+import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");
