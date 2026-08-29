@@ -3,8 +3,8 @@
 This is a fork from the famous ESP8266-IoT-Library from maakbas: <BR>
 <a href="https://github.com/maakbaas/esp8266-iot-framework">maakbaas/esp8266-iot-framework</a><BR>
 All rights from maakbaas are reserved !<BR>
-Target of the actual development is to make the library useable for ESP32 systems
 </p></strong>  
+Target of the actual development is to make the library useable for ESP32 systems
 
 The ESP32 IoT Framework is a set of modules to be used as a starting point in new ESP32 projects, implementing HTTPS requests, a React web interface, WiFi manager, configuration manager, live dashboard, NVS support, OTA updates and diagnostic manager.
 
@@ -22,6 +22,8 @@ For documentation please see [original documentation](https://github.com/maakbaa
 * diagnostic manager added to monitor variables and logging information via html website
 * nvs manager for support of non volaitile storage of data added
 * checkbox in dashboard page as on/off switch
+* node_modules directory now in project root folder, so no changes in library folder are made while building the project
+* generated directory for automatic generated src files  in project root src folder, so no changes in library folder are made while building the project
 
 
 ## New features in dashboard and configuration page 
@@ -76,7 +78,7 @@ To define a combobox control in dashboard or configuration page use the followin
     },    
 ```
 
-### display historical Data in a barchart in dashboard 
+### Display historical Data in a barchart in dashboard 
 To define a barchart graph to display hisorical data use the following code in dashboard.json
 ```
     {
@@ -127,10 +129,11 @@ board_build.partitions = min_spiffs.csv
 ```
 
 ## Quick start
-If you are new to PlatformIO, start with the [installation guide](https://github.com/maakbaas/esp8266-iot-framework/blob/master/docs/installation-guide.md). Otherwise, simply start a new project for your ESP32, and add the following line to your `platformio.ini` file:
+If you are new to PlatformIO, start with the installation guide of the original documentation.  
+Otherwise, simply start a new project for your ESP32, and add the following line to your `platformio.ini` file:
 ```
-joergtiedemann/ESP32-IoT-Framework@^1.0.0
+joergtiedemann/ESP32-IoT-Framework@^2.0.0
 ```
 
-Take one of the [examples](https://github.com/maakbaas/esp8266-iot-framework/tree/master/examples) as a starting point to develop your application.
+Take one of the examples as a starting point to develop your application.
 

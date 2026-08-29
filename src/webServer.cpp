@@ -155,6 +155,7 @@ void webServer::bindAll()
         FirebaseJson jsonBuffer;
         Serial.printf("Get Diagdata\n");
 
+        FirebaseJson jsonDiagDisplaySwitch;
         FirebaseJsonArray files;
         FirebaseJsonArray variablenames;
         FirebaseJsonArray variablevalues;
@@ -191,6 +192,11 @@ void webServer::bindAll()
             variablevalues.add(DiagManager.GetVariableMonitorValue(i));
         }
 
+        if (GUI.m_diagDisplayCallback)
+           jsonDiagDisplaySwitch.set("diagdisplay",String(true));
+        else
+           jsonDiagDisplaySwitch.set("diagdisplay",String(false));
+        jsonBuffer.add("dynamicConfigdata",jsonDiagDisplaySwitch);
         jsonBuffer.add("files",files);
         jsonBuffer.add("variablenames",variablenames);
         jsonBuffer.add("variablevalues",variablevalues);

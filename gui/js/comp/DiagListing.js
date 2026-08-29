@@ -69,7 +69,7 @@ const DiagLine = styled(Flex)`
 
 export function DiagListing(props) {
     // const [state, setState] = useState({ files: [], variabletxt1: "",variablevalue1: "",variabletxt2: "",variablevalue2: "",variabletxt3: "",variablevalue3: ""});
-    const [state, setState] = useState({ files: [], variablenames: [],variablevalues: []});
+    const [state, setState] = useState({dynamicConfigdata: {diagdisplay:0}, files: [], variablenames: [],variablevalues: []});
     const [currentTime, setcurrentTime] = useState("");
     const [restart, setRestart] = useState(false);
 
@@ -184,6 +184,15 @@ export function DiagListing(props) {
 
     let logheader;
     logheader = loc.diagLogData;
+
+    // DiagDisplayButton nur anzeigen, wenn der DiagDisplayCallback im ESP32-IoT-Framework aktiviert ist
+    let diagDisplayButton;
+    diagDisplayButton ="";
+    // console.log("Diagdisplay:", state.dynamicConfigdata.diagdisplay);
+     if (state.dynamicConfigdata.diagdisplay != 0)
+    {
+        diagDisplayButton = <div><Button onClick={(e) => {e.preventDefault();DiagDisplay(); }} id="diagdisplayid" name="diagdisplayname">{loc.DiagDisplay}</Button></div> 
+    }
     
     //console.log("Zeit:",currentTime);
     // und nun die HTML Listen als ein String zurueckgeben
@@ -197,7 +206,7 @@ export function DiagListing(props) {
      
      <Flex>
          <div><Button onClick={() => { setRestart(true);}}>{loc.fwReboot}</Button></div> 
-         <div><Button onClick={(e) => {e.preventDefault();DiagDisplay(); }} id="diagdisplayid" name="diagdisplayname">{loc.DiagDisplay}</Button></div> 
+         {diagDisplayButton} 
      </Flex>
 
      <Confirmation active={restart}

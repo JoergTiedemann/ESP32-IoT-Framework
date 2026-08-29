@@ -8,7 +8,7 @@
     "build": "SET NODE_OPTIONS=--openssl-legacy-provider && npx webpack --config .\\.pio\\libdeps\\esp32dev\\ESP32-IoT-Framework\\webpack.config.js --mode production",
     "lint": "eslint \"./**/*.js\""
   },
-  "author": "JoergTiedremann",
+  "author": "JoergTiedemann",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.9.0",
