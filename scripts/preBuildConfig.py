@@ -5,7 +5,11 @@ import inspect
 import os
 from pathlib import Path
 
-def preBuildConfigFun():
+def preBuildConfigFun(env=None):
+    # if env is not None:
+    #     print("preBuildConfigFun: PIOENV =", env.get("PIOENV"))
+    #     print("preBuildConfigFun: BOARD =", env.get("BOARD"))
+
     # Pfad dieser Datei (Library)
     this_file = Path(inspect.getframeinfo(inspect.currentframe()).filename).resolve()
     this_dir = this_file.parent
@@ -38,6 +42,13 @@ def preBuildConfigFun():
     # Lade JSON
     with open(src_config, "r", encoding="utf8") as f:
         data = json.load(f)
+
+    if env is not None and env.get("BOARD") != "esp32dev":
+        for item in data:
+            if item.get("name") == "FirmwareURL" and isinstance(item.get("value"), str):
+                if item["value"].endswith(".bin"):
+                    item["value"] = item["value"][:-4] + "_s3.bin"
+                    print("preBuildConfigFun: FirmwareURL angepasst:", item["value"])
 
     # Öffne Dateien zum Schreiben (überschreiben)
     with open(h_path, "w", encoding="utf8") as h, open(cpp_path, "w", encoding="utf8") as cpp:

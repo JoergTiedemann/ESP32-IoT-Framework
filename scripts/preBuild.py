@@ -32,6 +32,6 @@ for item in env.get("CPPDEFINES", []):
 if html:
     preBuildHTMLFun()
 if config:
-    preBuildConfigFun()
+    preBuildConfigFun(env)
 if dash:
     preBuildDashFun()
