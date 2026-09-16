@@ -62,5 +62,7 @@
     "globalShowWifi": "show wifi networks",
     "VersionenTitle": "Versions",
     "LibraryTitle": "Liraries",
-    "DiagDisplay": "Diagsdisplay"
+    "DiagDisplay": "Diagsdisplay",
+    "DelLogfile": "Log löschen",
+    "DiagLogfile": "Log anzeigen"
 }

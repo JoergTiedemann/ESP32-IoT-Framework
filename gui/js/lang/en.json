@@ -66,5 +66,7 @@
     "firwmwareUpdateQuest": "Wirklich Firmware updaten und Gerät neu starten ?",
     "VersionenTitle": "Versions",
     "LibraryTitle": "Liraries",
-    "DiagDisplay": "Diagsdisplay"
+    "DiagDisplay": "Diagsdisplay",
+    "DelLogfile": "Log löschen",
+    "DiagLogfile": "Log anzeigen"
 }

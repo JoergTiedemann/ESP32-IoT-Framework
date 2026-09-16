@@ -60,5 +60,7 @@
 	"diagResetMachineQuest":  "Really reset Device ?",
 	"diagLastActTime":  "last refresh (nl)",
     "globalShowWifi": "show wifi networks",
-    "DiagDisplay": "Diagsdisplay"
+    "DiagDisplay": "Diagsdisplay",
+    "DelLogfile": "Log löschen",
+    "DiagLogfile": "Log anzeigen"
 }

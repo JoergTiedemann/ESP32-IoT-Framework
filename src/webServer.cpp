@@ -72,6 +72,7 @@ void webServer::WifiGetResult(String& JSON,const bool bScan)
     jsonBuffer.set("captivePortal",WiFiManager.isCaptivePortal());
     jsonBuffer.set("ssid",WiFiManager.SSID());
     jsonBuffer.set("strength",String(WiFiManager.RSSI()));
+    jsonBuffer.set("bssid",String(WiFiManager.BSSID()));
     // Serial.printf("Get Wifi\n");
     String str,strenc;
     //nun noch die Wlanscandaten 
@@ -95,6 +96,14 @@ void webServer::WifiGetResult(String& JSON,const bool bScan)
     }
     jsonBuffer.add("wifiInfo",wifiInfo);
     JSON = jsonBuffer.raw();
+}
+
+bool diagnoseLogExists() {
+    if (!LittleFS.begin()) {
+        // Filesystem nicht gemountet → Datei kann nicht existieren
+        return false;
+    }
+    return LittleFS.exists("/diagnose.log");
 }
 
 void webServer::bindAll()
@@ -155,7 +164,7 @@ void webServer::bindAll()
         FirebaseJson jsonBuffer;
         Serial.printf("Get Diagdata\n");
 
-        FirebaseJson jsonDiagDisplaySwitch;
+        FirebaseJson jsonDynamicDiagConfig;
         FirebaseJsonArray files;
         FirebaseJsonArray variablenames;
         FirebaseJsonArray variablevalues;
@@ -193,10 +202,16 @@ void webServer::bindAll()
         }
 
         if (GUI.m_diagDisplayCallback)
-           jsonDiagDisplaySwitch.set("diagdisplay",String(true));
+           jsonDynamicDiagConfig.set("diagdisplay",String(true));
         else
-           jsonDiagDisplaySwitch.set("diagdisplay",String(false));
-        jsonBuffer.add("dynamicConfigdata",jsonDiagDisplaySwitch);
+           jsonDynamicDiagConfig.set("diagdisplay",String(false));
+
+        if (diagnoseLogExists()) 
+           jsonDynamicDiagConfig.set("diaglogfile",String(true));
+        else
+           jsonDynamicDiagConfig.set("diaglogfile",String(false));
+
+        jsonBuffer.add("dynamicConfigdata",jsonDynamicDiagConfig);
         jsonBuffer.add("files",files);
         jsonBuffer.add("variablenames",variablenames);
         jsonBuffer.add("variablevalues",variablevalues);
@@ -287,14 +302,8 @@ void webServer::bindAll()
 
     //remove file
     server.on(PSTR("/api/files/remove"), HTTP_POST, [](AsyncWebServerRequest *request) {
-
-#ifdef ESP32
         LittleFS.remove("/" + request->arg("filename"));
         request->send(200, PSTR("text/html"), "");
-#elif defined(ESP8266)
-        LittleFS.remove("/" + request->arg("filename"));
-        request->send(200, PSTR("text/html"), "");
-#endif
     });
 
     //update from LittleFS

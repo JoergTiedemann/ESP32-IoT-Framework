@@ -54,5 +54,7 @@
     "fwModal3": "O dispositivo está reiniciando. Por favor aguarde alguns segundos e atualize a página.",
     "VersionenTitle": "Versions",
     "LibraryTitle": "Liraries",
-    "DiagDisplay": "Diagsdisplay"
+    "DiagDisplay": "Diagsdisplay",
+    "DelLogfile": "Log löschen",
+    "DiagLogfile": "Log anzeigen"
 }

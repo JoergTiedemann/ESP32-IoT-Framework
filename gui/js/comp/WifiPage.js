@@ -12,7 +12,7 @@ if (Config.find(entry => entry.name === "language")) {
 }
 
 export function WifiPage(props) {
-    const [state, setState] = useState({ captivePortal: [], ssid: [], strength: [], wiFiInfo: []});
+    const [state, setState] = useState({ captivePortal: [], ssid: [], strength: [], wiFiInfo: [],bssid:[]});
     const [forgetModal, setForgetModal] = useState(false);
     const [saveModal, setSaveModal] = useState(false);
     const [dhcpForm, setDhcpForm] = useState(true);
@@ -102,7 +102,7 @@ export function WifiPage(props) {
     if (state.captivePortal === true) {
         connectedTo = <>{loc.wifiCP} (<a onClick={(e) => {fetchScanData();}}>{loc.globalShowWifi}</a>)</>;
     } else if (state.captivePortal === false) {
-        connectedTo = <>{loc.wifiConn} {state.ssid} ({state.strength}dB) (<a onClick={() => setForgetModal(true)}>{loc.wifiForget}</a>) (<a onClick={(e) => {fetchScanData();}}>{loc.globalShowWifi}-Scan</a>)</>;
+        connectedTo = <>{loc.wifiConn} {state.ssid} ({state.strength}dB MAC: {state.bssid}) (<a onClick={() => setForgetModal(true)}>{loc.wifiForget}</a>) (<a onClick={(e) => {fetchScanData();}}>{loc.globalShowWifi}-Scan</a>)</>;
     }
     page = <>{page}<p>{connectedTo == null ? <Spinner/> : connectedTo}</p></>;
 

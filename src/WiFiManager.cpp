@@ -370,6 +370,11 @@ long WifiManager::RSSI()
     return WiFi.RSSI();
 }
 
+String WifiManager::BSSID()
+{    
+    return WiFi.BSSIDstr();
+}
+
 
 //captive portal loop
 void WifiManager::loop()

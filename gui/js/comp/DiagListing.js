@@ -69,7 +69,7 @@ const DiagLine = styled(Flex)`
 
 export function DiagListing(props) {
     // const [state, setState] = useState({ files: [], variabletxt1: "",variablevalue1: "",variabletxt2: "",variablevalue2: "",variabletxt3: "",variablevalue3: ""});
-    const [state, setState] = useState({dynamicConfigdata: {diagdisplay:0}, files: [], variablenames: [],variablevalues: []});
+    const [state, setState] = useState({dynamicConfigdata: {diagdisplay:0,diaglogfile:0}, files: [], variablenames: [],variablevalues: []});
     const [currentTime, setcurrentTime] = useState("");
     const [restart, setRestart] = useState(false);
 
@@ -125,6 +125,11 @@ export function DiagListing(props) {
       function DiagDisplay() {
         console.log("Diagdisplayumschaltung");
         fetch(`${props.API}/api/diagdisplay`, { method: "POST" });
+      }
+
+      function DeleteLogfile() {
+        console.log("Delete Logfile");
+        fetch(`${props.API}/api/files/remove?filename=diagnose.log`, { method: "POST" });
       }
 
       let variablenliste;
@@ -185,6 +190,20 @@ export function DiagListing(props) {
     let logheader;
     logheader = loc.diagLogData;
 
+    // DiaglogfileButton nur anzeigen, wenn die Datei auch da ist
+    let diaglogfileButtonButton;
+    let dellogfileButtonButton
+    diaglogfileButtonButton ="";
+    // console.log("Diagdisplay:", state.dynamicConfigdata.diagdisplay);
+     if (state.dynamicConfigdata.diaglogfile != 0)
+    {
+        diaglogfileButtonButton = <div><a href={`${props.API}/download/diagnose.log`} rel="noreferrer" target="_blank" onClick={(e) => { e.stopPropagation();}}>
+                                            <Button id="dwnloadlogfileid" name="dwnloadlogfilename">{loc.DiagLogfile}</Button>
+                                        </a></div>                
+        dellogfileButtonButton = <div><Button onClick={(e) => {e.preventDefault();DeleteLogfile(); }} id="dellogfileid" name="dellogfilename">{loc.DelLogfile}</Button></div> 
+    }
+
+
     // DiagDisplayButton nur anzeigen, wenn der DiagDisplayCallback im ESP32-IoT-Framework aktiviert ist
     let diagDisplayButton;
     diagDisplayButton ="";
@@ -206,6 +225,8 @@ export function DiagListing(props) {
      
      <Flex>
          <div><Button onClick={() => { setRestart(true);}}>{loc.fwReboot}</Button></div> 
+         {diaglogfileButtonButton}
+         {dellogfileButtonButton}
          {diagDisplayButton} 
      </Flex>
 

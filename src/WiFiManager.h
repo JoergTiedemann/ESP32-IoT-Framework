@@ -41,6 +41,7 @@ public :
     void forget();
     bool isCaptivePortal();
     String SSID();
+    String BSSID();
     long RSSI();
     void setNewWifi(String newSSID, String newPass);
     void setNewWifi(String newSSID, String newPass, String newIp, String newSub, String newGw, String newDns);

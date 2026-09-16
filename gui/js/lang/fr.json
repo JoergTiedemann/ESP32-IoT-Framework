@@ -54,5 +54,7 @@
     "fwModal3": "Le système redémarre. Veuillez patienter quelques secondes puis rafraichir cette page.",
     "VersionenTitle": "Versions",
     "LibraryTitle": "Liraries",
-    "DiagDisplay": "Diagsdisplay"
+    "DiagDisplay": "Diagsdisplay",
+    "DelLogfile": "Log löschen",
+    "DiagLogfile": "Log anzeigen"
 }
