@@ -112,6 +112,7 @@ void WifiManager::begin(char const *apName, unsigned long newTimeout)
         Serial.print(configSsid);
 
         WiFi.begin();
+        WiFi.setSleep(false);
 
     }
 
