@@ -22,7 +22,7 @@
     "wifiForget": "Zurücksetzen",
     "wifiUpdate": "Kennwort aktualisieren",
     "wifiCP": "Captive portal ist aktiv",
-    "wifiModal1": "Bist du dir sicher? Beim fortsetzen wird ein Captive Portal gestartet.",
+    "wifiModal1": "Bist du dir sicher? Beim fortsetzen werden die WLAN-Daten gelöscht und ein Neustart durchgefuehrt!",
     "wifiModal2": "Bist du dir sicher? Beim fortsetzen wird die vorhandene Verbindung zum Netzwerk getrennt.",
     "dashEmpty": "Es sind keine Inhalte in der JSON-Datei definiert.",
     "dashLive": "LIVE",
@@ -66,6 +66,7 @@
     "firwmwareUpdateQuest": "Wirklich Firmware updaten und Gerät neu starten ?",
     "VersionenTitle": "Versionen",
     "LibraryTitle": "Bibliotheken",
+    "bssid": "Mac-Adresse Router",
     "DiagDisplay": "Diagnosedisplay",
     "DelLogfile": "Log löschen",
     "DiagLogfile": "Log anzeigen"

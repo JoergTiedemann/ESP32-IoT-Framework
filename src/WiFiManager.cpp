@@ -5,8 +5,10 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 
+#include "DiagManager.h"
 #include "WiFiManager.h"
 #include "configManager.h"
+#include "NVSManager.h"
 
 //create global object
 WifiManager WiFiManager;
@@ -65,136 +67,417 @@ void WiFiEvent(WiFiEvent_t event) {
     }
 }
 
-//function to call in setup
+bool parseMac(const char* macStr, uint8_t mac[6]) {
+    int values[6];
+    if (sscanf(macStr, "%x:%x:%x:%x:%x:%x",
+               &values[0], &values[1], &values[2],
+               &values[3], &values[4], &values[5]) != 6) {
+        return false;
+    }
+    for (int i = 0; i < 6; i++) mac[i] = (uint8_t)values[i];
+    return true;
+}
+bool tryPreferredBssid(const String& preferredMacStr)
+{
+    if (preferredMacStr.length() < 17) {
+        Serial.println("Preferred MAC ungültig");
+        return false;
+    }
+
+    // String → char*
+    const char* preferredMac = preferredMacStr.c_str();
+
+    uint8_t targetBssid[6];
+    if (!parseMac(preferredMac, targetBssid)) {
+        Serial.println("Preferred MAC parse Fehler");
+        return false;
+    }
+
+    // SSID + Passwort aus ESP-IDF holen
+    wifi_config_t conf;
+    esp_wifi_get_config(WIFI_IF_STA, &conf);
+
+    const char* ssid = (const char*)conf.sta.ssid;
+    const char* pass = (const char*)conf.sta.password;
+
+    Serial.printf("Stored SSID: %s\n", ssid);
+    Serial.printf("Stored PASS: %s\n", pass);
+
+    // Scan
+    Serial.println("ESP-IDF Scan...");
+    wifi_scan_config_t scanConf = {};
+    scanConf.show_hidden = true;
+
+    esp_wifi_scan_start(&scanConf, true);
+
+    uint16_t apCount = 0;
+    esp_wifi_scan_get_ap_num(&apCount);
+
+    if (apCount == 0) {
+        Serial.println("Scan: keine APs gefunden");
+        return false;
+    }
+
+    wifi_ap_record_t *list = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
+    esp_wifi_scan_get_ap_records(&apCount, list);
+
+    Serial.printf("Gefundene APs: %d\n", apCount);
+
+    bool found = false;
+    int channel = 0;
+
+    for (int i = 0; i < apCount; i++) {
+
+        Serial.printf("SSID: %s | BSSID: %02X:%02X:%02X:%02X:%02X:%02X | Kanal: %d | RSSI: %d\n",
+            list[i].ssid,
+            list[i].bssid[0], list[i].bssid[1], list[i].bssid[2],
+            list[i].bssid[3], list[i].bssid[4], list[i].bssid[5],
+            list[i].primary,
+            list[i].rssi
+        );
+
+        if (memcmp(list[i].bssid, targetBssid, 6) == 0) {
+            found = true;
+            channel = list[i].primary;
+        }
+    }
+
+    free(list);
+
+    if (!found) {
+        Serial.println("Bevorzugte BSSID nicht im Scan gefunden");
+        return false;
+    }
+
+    Serial.printf("Bevorzugte BSSID gefunden, Kanal %d\n", channel);
+
+    // ESP-IDF STA Config direkt setzen
+    wifi_config_t cfg = {};
+    strncpy((char*)cfg.sta.ssid, ssid, sizeof(cfg.sta.ssid));
+    strncpy((char*)cfg.sta.password, pass, sizeof(cfg.sta.password));
+
+    memcpy(cfg.sta.bssid, targetBssid, 6);
+    cfg.sta.bssid_set = true;
+
+    // Kanal NICHT setzen → Auto-Scan aktiv
+    cfg.sta.channel = 0;
+
+    esp_wifi_disconnect();
+    esp_wifi_set_config(WIFI_IF_STA, &cfg);
+    esp_wifi_connect();
+
+    // Sleep deaktivieren
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    WiFi.setSleep(false);
+
+    unsigned long start = millis();
+    while (millis() - start < 7000) {
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("Verbunden mit bevorzugter BSSID!");
+            return true;
+        }
+        delay(100);
+    }
+
+    Serial.println("Bevorzugte BSSID nicht erreichbar");
+    return false;
+}
+
+bool tryNormalConnect(unsigned long timeout) {
+
+    // SSID + Passwort aus ESP-IDF holen
+    wifi_config_t conf;
+    esp_wifi_get_config(WIFI_IF_STA, &conf);
+
+    const char* ssid = (const char*)conf.sta.ssid;
+    const char* pass = (const char*)conf.sta.password;
+
+    Serial.print("Versuche normale Verbindung mit SSID: ");
+    Serial.println(ssid);
+
+    if (strlen(ssid) == 0) {
+        Serial.println("SSID aus NVS ist leer → keine normale Verbindung möglich");
+        return false;
+    }
+
+    WiFi.disconnect(false);
+    delay(200);
+
+    WiFi.begin(ssid, pass);
+    WiFi.setSleep(false);
+
+    unsigned long start = millis();
+    while (millis() - start < timeout) {
+        if (WiFi.status() == WL_CONNECTED) return true;
+        delay(100);
+    }
+
+    Serial.println("Normale Verbindung fehlgeschlagen");
+    return false;
+}
+
+
 void WifiManager::begin(char const *apName, unsigned long newTimeout)
 {
     captivePortalName = apName;
     timeout = newTimeout;
+    _newwificallback = NULL;
+    NVSManager.begin();
+    serverRunning = true;
+
     WiFi.onEvent(WiFiEvent);
     WiFi.mode(WIFI_STA);
     WiFi.persistent(true);
     WiFi.setAutoReconnect(true);
-    
-    //set static IP if entered
+
+    // Static IP?
     ip = IPAddress(configManager.internal.ip);
     gw = IPAddress(configManager.internal.gw);
     sub = IPAddress(configManager.internal.sub);
     dns = IPAddress(configManager.internal.dns);
 
-    if (isIPAddressSet(ip) || isIPAddressSet(gw) || isIPAddressSet(sub) || isIPAddressSet(dns))
-    {
-        Serial.println(PSTR("Using static IP"));
+    if (isIPAddressSet(ip) || isIPAddressSet(gw) || isIPAddressSet(sub) || isIPAddressSet(dns)) {
+        Serial.println("Using static IP");
         WiFi.config(ip, gw, sub, dns);
     }
 
-    // ESP32 PITA: workaround configured persisted SSID not being restored to WiFi.SSID() 
-    // See https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/network/esp_wifi.html
-    // See https://github.com/espressif/arduino-esp32/issues/548#
+    // SSID aus NVS holen
     wifi_config_t conf;
     esp_wifi_get_config(WIFI_IF_STA, &conf);
     String configSsid = F(conf.sta.ssid);
-    String configPsk = F(conf.sta.password);
+    String configPsk  = F(conf.sta.password);
+    NVSManager.GetString("PREFBSSID",&bssid,"");
+
 
     Serial.println("configSsid=");
     Serial.println(configSsid);
 
-    if (configSsid == "")
-    {
-        Serial.println(PSTR("Configured SSID is empty."));
+    if (configSsid == "") {
+        Serial.println("Configured SSID is empty.");
         // Timeout runter setzen
         timeout = 2000;
-    }
-    else
-    {
-        WiFi.disconnect(false);
-
-        Serial.print(PSTR("WiFi.begin(), WifiManager::begin(), SSID: "));
-        Serial.print(configSsid);
-
-        WiFi.begin();
-        WiFi.setSleep(false);
-
-    }
-
-    if (waitForConnectResult(timeout) == WL_CONNECTED)
-    {
-        //connected
-        Serial.print(PSTR("Connected to stored WiFi details"));
-        Serial.print(PSTR(", localIP: "));
-        Serial.println(WiFi.localIP());
-    }
-    else
-    {
-        //captive portal
-        Serial.print(PSTR("Timed out waiting for connect. Starting captive portal. SSID: "));
-        Serial.println(WiFi.SSID());
         startCaptivePortal(captivePortalName);
+        return;
     }
+
+    // 1) Versuch: bevorzugte BSSID
+    if (bssid != "" && bssid.length() >= 17) {
+        if (tryPreferredBssid(bssid)) {
+            Serial.print("Connected via preferred BSSID, IP: ");
+            Serial.println(WiFi.localIP());
+            return;
+        }
+        // WICHTIG: WiFi-Stack sauber zurücksetzen
+        Serial.println("Reset WiFi-Stack nach BSSID-Timeout...");
+        esp_wifi_disconnect();
+        esp_wifi_stop();
+        delay(100);
+        esp_wifi_start();
+        delay(100);
+        WiFi.mode(WIFI_STA);
+        WiFi.setSleep(false);
+        WiFi.setAutoReconnect(true);
+    }
+
+    // 2) Versuch: normale Verbindung
+    if (tryNormalConnect(timeout)) {
+        Serial.print("Connected via SSID, IP: ");
+        Serial.println(WiFi.localIP());
+        return;
+    }
+
+    // 3) Fallback: Captive Portal
+    Serial.print(PSTR("Timed out waiting for connect. Starting captive portal. SSID: "));
+    Serial.println(WiFi.SSID());
+    startCaptivePortal(captivePortalName);
 }
 
-//Upgraded default waitForConnectResult function to incorporate WL_NO_SSID_AVAIL, fixes issue #122
-int8_t WifiManager::waitForConnectResult(unsigned long timeoutLengthMs) {
-#ifdef ESP32
-    // 1 (WIFI_MODE_STA) and 3 (WIFI_MODE_APSTA) have STA enabled
-    if((WiFiGenericClass::getMode() & WIFI_MODE_STA) == 0) {
-        Serial.print(PSTR("STA mode not enabled, returning WL_DISCONNECTED."));
-        return WL_DISCONNECTED;
+bool WifiManager::forceReconnectIfIpLost()
+{
+    // 1) Prüfen ob IP verloren oder nicht verbunden
+    if (WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != "0.0.0.0") {
+        // Alles ok → kein Reconnect nötig
+        DiagManager.PushDiagData(msgFehler,"Fehler: Reconnect aufgerufen obwohl Connectiviät besteht");
+        return true;
     }
 
-    // Wait to become connected, or timeout expiration.  Bail if clock rollover detected.
-    unsigned long now = millis();
-    unsigned long start = now;
-    unsigned long timeout = now + timeoutLengthMs;
-    int loopCount = 0;
-    while((now = millis()) < timeout && now >= start) {
-        delay(1);
-        wl_status_t wifiStatus = WiFi.status();
-        if(wifiStatus != WL_DISCONNECTED &&     // Disconnected from a networ
-            wifiStatus != WL_NO_SSID_AVAIL &&   // When no SSID are available
-            wifiStatus != WL_IDLE_STATUS)       // Temporary status assigned when WiFi.begin() called
-        {
-            Serial.print(PSTR("WiFi.status()="));
-            Serial.println(wifiStatus);
-            return wifiStatus;
+    Serial.println("forceReconnectIfIpLost: IP verloren oder nicht verbunden → Reconnect starten");
+
+    // 2) WiFi-Stack sauber resetten
+    esp_wifi_disconnect();
+    esp_wifi_stop();
+    delay(100);
+    esp_wifi_start();
+    delay(100);
+
+    WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
+    WiFi.setAutoReconnect(true);
+
+    // 3) SSID + Passwort aus NVS holen
+    wifi_config_t conf;
+    esp_wifi_get_config(WIFI_IF_STA, &conf);
+
+    String ssid = String((char*)conf.sta.ssid);
+    String pass = String((char*)conf.sta.password);
+
+    if (ssid.length() == 0) {
+        Serial.println("forceReconnectIfIpLost: Keine SSID gespeichert → Captive Portal");
+        startCaptivePortal(captivePortalName);
+        return false;
+    }
+
+    // 4) bevorzugte BSSID versuchen
+    if (bssid != "" && bssid.length() >= 17) {
+        Serial.println("forceReconnectIfIpLost: Versuche bevorzugte BSSID…");
+
+        if (tryPreferredBssid(bssid)) {
+            Serial.println("forceReconnectIfIpLost: Erfolgreich über bevorzugte BSSID verbunden!");
+            Serial.println(WiFi.localIP());
+            return true;
         }
-        loopCount++;
+
+        Serial.println("forceReconnectIfIpLost: BSSID-Timeout → Stack Reset");
+        esp_wifi_disconnect();
+        esp_wifi_stop();
+        delay(100);
+        esp_wifi_start();
+        delay(100);
+        WiFi.mode(WIFI_STA);
+        WiFi.setSleep(false);
+        WiFi.setAutoReconnect(true);
     }
 
-    Serial.print(PSTR("Loop count="));
-    Serial.print(loopCount);
-
-#elif defined(ESP8266)
-    // 1 (WIFI_MODE_STA) and 3 (WIFI_MODE_APSTA) have STA enabled
-    if((wifi_get_opmode() & 1) == 0) {
-        return WL_DISCONNECTED;
+    // 5) normale Verbindung
+    Serial.println("forceReconnectIfIpLost: Versuche normale SSID-Verbindung…");
+    if (tryNormalConnect(7000)) {
+        Serial.println("forceReconnectIfIpLost: Erfolgreich über SSID verbunden!");
+        Serial.println(WiFi.localIP());
+        return true;
     }
-    using esp8266::polledTimeout::oneShot;
-    oneShot timeout(timeoutLengthMs); // number of milliseconds to wait before returning timeout error
-    while(!timeout) {
-        yield();
-        if(WiFi.status() != WL_DISCONNECTED && WiFi.status() != WL_NO_SSID_AVAIL) {
-            return WiFi.status();
-        }
-    }
-#endif
 
-    return -1; // -1 indicates timeout
+    // 6) Fallback: Captive Portal
+    Serial.println("forceReconnectIfIpLost: Verbindung englueltig fehlgeschlagen");
+    // startCaptivePortal(captivePortalName);
+    return false;
 }
+
+
+void WifiManager::connectNewWifi(String newSSID, String newPass, String newBssid)
+{
+    Serial.println("ConnectNewWifi: Neue Daten empfangen");
+    Serial.printf("SSID: %s | PASS: %s | BSSID: %s\n",
+                  newSSID.c_str(), newPass.c_str(), newBssid.c_str());
+
+    // Static IP setzen
+    ip = IPAddress(configManager.internal.ip);
+    gw = IPAddress(configManager.internal.gw);
+    sub = IPAddress(configManager.internal.sub);
+    dns = IPAddress(configManager.internal.dns);
+
+    if (isIPAddressSet(ip) || isIPAddressSet(gw) || isIPAddressSet(sub) || isIPAddressSet(dns)) {
+        Serial.println("Using static IP");
+        WiFi.config(ip, gw, sub, dns);
+    }
+
+    // Verbindung abbrechen
+    esp_wifi_disconnect();
+    delay(100);
+
+    // Neue Credentials in ESP-IDF STA Config schreiben
+    wifi_config_t cfg = {};
+    strncpy((char*)cfg.sta.ssid, newSSID.c_str(), sizeof(cfg.sta.ssid));
+    strncpy((char*)cfg.sta.password, newPass.c_str(), sizeof(cfg.sta.password));
+
+    // BSSID optional setzen
+    if (newBssid != "" && newBssid.length() >= 17) {
+        uint8_t targetBssid[6];
+        if (parseMac(newBssid.c_str(), targetBssid)) {
+            memcpy(cfg.sta.bssid, targetBssid, 6);
+            cfg.sta.bssid_set = true;
+            cfg.sta.channel = 0;  // Auto-Scan
+            Serial.println("ConnectNewWifi: BSSID gesetzt");
+        } else {
+            Serial.println("ConnectNewWifi: BSSID ungültig → ignoriert");
+            cfg.sta.bssid_set = false;
+        }
+    } else {
+        cfg.sta.bssid_set = false;
+    }
+
+    // Config setzen
+    esp_wifi_set_config(WIFI_IF_STA, &cfg);
+
+    // 1) Versuch: bevorzugte BSSID
+    if (cfg.sta.bssid_set) {
+        Serial.println("ConnectNewWifi: Versuche bevorzugte BSSID…");
+
+        if (tryPreferredBssid(newBssid)) {
+            Serial.println("ConnectNewWifi: Erfolgreich über bevorzugte BSSID verbunden!");
+            Serial.println(WiFi.localIP());
+            storeToEEPROM();
+            if (_newwificallback) 
+                _newwificallback();
+            if (inCaptivePortal)
+                stopCaptivePortal();
+            return;
+        }
+
+        // Reset wie in begin()
+        Serial.println("ConnectNewWifi: BSSID-Timeout → Reset WiFi-Stack…");
+        esp_wifi_disconnect();
+        esp_wifi_stop();
+        delay(100);
+        esp_wifi_start();
+        delay(100);
+        WiFi.mode(WIFI_STA);
+        WiFi.setSleep(false);
+        WiFi.setAutoReconnect(true);
+    }
+
+    // 2) Versuch: normale Verbindung
+    Serial.println("ConnectNewWifi: Versuche normale SSID-Verbindung…");
+    WiFi.begin(newSSID.c_str(), newPass.c_str());
+    unsigned long start = millis();
+    while (millis() - start < 10000) {
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("ConnectNewWifi: Erfolgreich über SSID verbunden!");
+            Serial.println(WiFi.localIP());
+            storeToEEPROM();
+            if (_newwificallback) 
+                _newwificallback();
+            if (inCaptivePortal)
+                stopCaptivePortal();
+            return;
+        }
+        delay(100);
+    }
+
+    Serial.println("ConnectNewWifi: SSID-Verbindung fehlgeschlagen");
+
+    // 3) Fallback: Captive Portal
+    Serial.println("ConnectNewWifi: Starte Captive Portal…");
+    startCaptivePortal(captivePortalName);
+}
+
 
 //function to forget current WiFi details and start a captive portal
 void WifiManager::forget()
 { 
-    inCaptivePortal = true; // damit der IP Adressencheck nicht zuschlaegt
-    WiFi.disconnect();
-    // esp_wifi_restore();
-    startCaptivePortal(captivePortalName);
+    Serial.println("forgetWifi…");
 
+    WiFi.persistent(true);
+    WiFi.disconnect(false,true);   // löscht SSID/Passwort
+    NVSManager.WriteString("PREFBSSID", String("")); // optional: BSSID löschen
+    // optional: explizit auch ESP-IDF config nullen
+    wifi_config_t cfg;
+    memset(&cfg, 0, sizeof(cfg));
+    esp_wifi_set_config(WIFI_IF_STA, &cfg);
     //remove IP address from EEPROM
     ip = IPAddress();
     sub = IPAddress();
     gw = IPAddress();
     dns = IPAddress();
-
     //make EEPROM empty
     storeToEEPROM();
 
@@ -202,115 +485,40 @@ void WifiManager::forget()
         _forgetwificallback();
     } 
 
-    Serial.println(PSTR("Requested to forget WiFi. Started Captive portal."));
+    delay(200);
+    // optional reboot:
+    Serial.println(PSTR("Restart wird durchgeführt"));
+    ESP.restart();
 }
 
 //function to request a connection to new WiFi credentials
-void WifiManager::setNewWifi(String newSSID, String newPass)
+void WifiManager::setNewWifi(String newSSID, String newPass, String newBssid)
 {    
     ssid = newSSID;
     pass = newPass;
+    bssid = newBssid;
     ip = IPAddress();
     sub = IPAddress();
     gw = IPAddress();
     dns = IPAddress();
+    NVSManager.WriteString("PREFBSSID",newBssid);
+
+    Serial.println(PSTR("New BSSID: ") + newBssid + PSTR(",  Will reconnect."));
     reconnect = true;
 }
 
 //function to request a connection to new WiFi credentials
-void WifiManager::setNewWifi(String newSSID, String newPass, String newIp, String newSub, String newGw, String newDns)
+void WifiManager::setNewWifi(String newSSID, String newPass, String newBssid, String newIp, String newSub, String newGw, String newDns)
 {
     ssid = newSSID;
     pass = newPass;
+    bssid = newBssid;
     ip.fromString(newIp);
     sub.fromString(newSub);
     gw.fromString(newGw);
     dns.fromString(newDns);
-
+    NVSManager.WriteString("PREFBSSID",newBssid);
     reconnect = true;
-}
-
-//function to connect to new WiFi credentials
-void WifiManager::connectNewWifi(String newSSID, String newPass)
-{
-    delay(1000);
-
-    //set static IP or zeros if undefined    
-    WiFi.config(ip, gw, sub, dns);
-
-    bool hasNetworkMismatch = 
-        // operator uint32_t() const
-        ip != IPAddress(configManager.internal.ip) || 
-        dns != IPAddress(configManager.internal.dns);
-
-    //fix for auto connect racing issue
-    if (!(WiFi.status() == WL_CONNECTED && (WiFi.SSID() == newSSID)) || hasNetworkMismatch)
-    {          
-        //trying to fix connection in progress hanging
-        WiFi.disconnect(false);
-
-        //store old data in case new network is wrong
-        // ESP32 PITA workaround configured persisted SSID not being restored to WiFi.SSID() 
-        wifi_config_t conf;
-        esp_wifi_get_config(WIFI_IF_STA, &conf);
-        String oldSSID = F(conf.sta.ssid);
-        String oldPSK = F(conf.sta.password);
-
-
-        Serial.print(PSTR("WiFi.begin, connectNewWifi"));
-        Serial.print(", SSID: ");
-        Serial.println(newSSID.c_str());
-
-        WiFi.begin(newSSID.c_str(), newPass.c_str(), 0, NULL, true);
-        delay(2000);
-
-        // TODO:P0 Implement ESP32 version,
-        // ESP32 doesn't have timeout param for WiFi.waitForConnectResult, times out after 10s, so either live with that or create wrapper...
-        if (WiFi.waitForConnectResult() != WL_CONNECTED)
-        {
-            Serial.println(PSTR("New connection unsuccessful"));
-            if (!inCaptivePortal)
-            {
-                Serial.print(PSTR("WiFi.begin, !inCaptivePortal"));
-
-                WiFi.begin(
-                    oldSSID.c_str(), // ssid
-                    oldPSK.c_str(),  // passphrase
-                    0,               // channel
-                    NULL,            // BSSID / MAC of AP
-                    true);           // connect
-
-                if (WiFi.waitForConnectResult() != WL_CONNECTED)
-                {
-                    Serial.println(PSTR("Reconnection failed too"));
-                    startCaptivePortal(captivePortalName);
-                }
-                else 
-                {
-                    Serial.println(PSTR("Reconnection successful"));
-                    Serial.println(WiFi.localIP());
-                }
-            }
-        }
-        else
-        {
-            if (inCaptivePortal)
-            {
-                stopCaptivePortal();
-            }
-
-            Serial.println(PSTR("New connection successful"));
-            Serial.println(WiFi.localIP());
-
-            //store IP address in EEProm
-            storeToEEPROM();
-
-            if ( _newwificallback != NULL) {
-                _newwificallback();
-            }
-
-        }
-    }
 }
 
 //function to start the captive portal
@@ -336,6 +544,7 @@ void WifiManager::startCaptivePortal(char const *apName)
     inCaptivePortal = true;
 
 }
+
 
 //function to stop the captive portal
 void WifiManager::stopCaptivePortal()
@@ -366,6 +575,12 @@ String WifiManager::SSID()
     return WiFi.SSID();
 }
 
+String WifiManager::PASS()
+{    
+    return WiFi.psk();
+}
+
+
 long WifiManager::RSSI()
 {    
     return WiFi.RSSI();
@@ -374,6 +589,11 @@ long WifiManager::RSSI()
 String WifiManager::BSSID()
 {    
     return WiFi.BSSIDstr();
+}
+
+String WifiManager::ConfBSSID()
+{    
+    return bssid;
 }
 
 
@@ -388,7 +608,7 @@ void WifiManager::loop()
 
     if (reconnect)
     {
-        connectNewWifi(ssid, pass);
+        connectNewWifi(ssid, pass,bssid);
         reconnect = false;
     }
     // InternNetworkscan();

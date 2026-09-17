@@ -21,7 +21,7 @@
     "wifiForget": "Oublier",
     "wifiUpdate": "Mise à jour des identifiants",
     "wifiCP": "Portail captif en cours d'exécution",
-    "wifiModal1": "Êtes-vous sûr? Si vous continuez, un portail captif sera démarré.",
+    "wifiModal1": "Bist du dir sicher? Beim fortsetzen werden die WLAN-Daten gelöscht und ein Neustart durchgefuehrt!",
     "wifiModal2": "Êtes-vous sûr? Si vous continuez, l'accès au périphérique à partir du réseau actuel sera probablement perdu.",
     "dashEmpty": "Aucun élément défini dans le fichier JSON",
     "dashLive": "ACTIF",
@@ -54,6 +54,7 @@
     "fwModal3": "Le système redémarre. Veuillez patienter quelques secondes puis rafraichir cette page.",
     "VersionenTitle": "Versions",
     "LibraryTitle": "Liraries",
+    "bssid": "Mac-Adresse Router",
     "DiagDisplay": "Diagsdisplay",
     "DelLogfile": "Log löschen",
     "DiagLogfile": "Log anzeigen"

@@ -7,12 +7,12 @@ import Config from "../../../../../../../configuration.json";
 let loc;
 if (Config.find(entry => entry.name === "language")) {
     loc = require("./../lang/" + Config.find(entry => entry.name === "language").value + ".json");
-} else {
+} else {W
     loc = require("./../lang/en.json");
 }
 
 export function WifiPage(props) {
-    const [state, setState] = useState({ captivePortal: [], ssid: [], strength: [], wiFiInfo: [],bssid:[]});
+    const [state, setState] = useState({ captivePortal: [], ssid: [], pass: [], strength: [], wiFiInfo: [],bssid:[],confbssid:[]});
     const [forgetModal, setForgetModal] = useState(false);
     const [saveModal, setSaveModal] = useState(false);
     const [dhcpForm, setDhcpForm] = useState(true);
@@ -46,20 +46,33 @@ export function WifiPage(props) {
             });
       }
 
-      function changeWifi() {
+    //   function changeWifi() {
+    //     if (dhcpForm) {
+    //         fetch(`${props.API}/api/wifi/set?ssid=${escape(document.getElementById("ssid").value.trim())}&pass=${escape(document.getElementById("pass").value.trim())}&bssid=${escape(document.getElementById("bssid").value.trim())}`, { method: "POST" });
+    //     } else {
+    //         fetch(`${props.API}/api/wifi/setStatic?ssid=${escape(document.getElementById("ssid").value.trim())}&pass=${escape(document.getElementById("pass").value.trim())}&bssid=${escape(document.getElementById("bssid").value.trim())}&ip=${escape(document.getElementById("ip").value.trim())}&sub=${escape(document.getElementById("sub").value.trim())}&gw=${escape(document.getElementById("gw").value.trim())}&dns=${escape(document.getElementById("dns").value.trim())}`, { method: "POST" });
+    //         document.getElementById("ip").value = "";
+    //         document.getElementById("gw").value = "";
+    //         document.getElementById("sub").value = "";
+    //         document.getElementById("dns").value = "";
+    //         setDhcpForm(true);
+    //     }
+    //     // document.getElementById("ssid").value = "";
+    //     // document.getElementById("pass").value = "";        
+    // }
+    function changeWifi() {
+        const { ssid, pass, confbssid, ip, sub, gw, dns } = state;
+
         if (dhcpForm) {
-            fetch(`${props.API}/api/wifi/set?ssid=${escape(document.getElementById("ssid").value.trim())}&pass=${escape(document.getElementById("pass").value.trim())}`, { method: "POST" });
+            fetch(`${props.API}/api/wifi/set?ssid=${escape(ssid)}&pass=${escape(pass)}&bssid=${escape(confbssid)}`, { method: "POST" });
         } else {
-            fetch(`${props.API}/api/wifi/setStatic?ssid=${escape(document.getElementById("ssid").value.trim())}&pass=${escape(document.getElementById("pass").value.trim())}&ip=${escape(document.getElementById("ip").value.trim())}&sub=${escape(document.getElementById("sub").value.trim())}&gw=${escape(document.getElementById("gw").value.trim())}&dns=${escape(document.getElementById("dns").value.trim())}`, { method: "POST" });
-            document.getElementById("ip").value = "";
-            document.getElementById("gw").value = "";
-            document.getElementById("sub").value = "";
-            document.getElementById("dns").value = "";
+            fetch(`${props.API}/api/wifi/setStatic?ssid=${escape(ssid)}&pass=${escape(pass)}&bssid=${escape(confbssid)}&ip=${escape(ip)}&sub=${escape(sub)}&gw=${escape(gw)}&dns=${escape(dns)}`, { method: "POST" });
+            setState({ ...state, ip: "", sub: "", gw: "", dns: "" });
             setDhcpForm(true);
         }
-        document.getElementById("ssid").value = "";
-        document.getElementById("pass").value = "";        
     }
+
+    
 
     let dhcp = <></>;
 
@@ -81,12 +94,41 @@ export function WifiPage(props) {
     }    
 
     const form = <><Form>
-        <p><label htmlFor="ssid"><Wifi /> {loc.wifiSSID}:</label>
-            <input type="text" id="ssid" name="ssid" autoCapitalize="none" />
-        </p>
-        <p><label htmlFor="pass"><Lock /> {loc.wifiPass}:</label>
-            <input type="text" id="pass" name="pass" autoCapitalize="none" />
-        </p>   
+                <p>
+                <label htmlFor="ssid"><Wifi /> {loc.wifiSSID}:</label>
+                <input
+                    type="text"
+                    id="ssid"
+                    name="ssid"
+                    value={state.ssid || ""}
+                    onChange={(e) => setState({ ...state, ssid: e.target.value })}
+                />
+                </p>
+
+                <p>
+                <label htmlFor="pass"><Lock /> {loc.wifiPass}:</label>
+                <input
+                    type="text"
+                    id="pass"
+                    name="pass"
+                    value={state.pass || ""}
+                    onChange={(e) => setState({ ...state, pass: e.target.value })}
+                />
+                </p>
+
+                <p>
+                <label htmlFor="bssid"><Lock /> {loc.bssid}:</label>
+                <input
+                    type="text"
+                    id="bssid"
+                    name="bssid"
+                    value={state.confbssid || ""}
+                    onChange={(e) => setState({ ...state, confbssid: e.target.value })}
+                />
+                </p>
+
+
+
         <p><label htmlFor="dhcp"><Server /> {loc.wifiDHCP}:</label>
             <input type="checkbox" id="dhcp" name="dhcp" checked={dhcpForm} onChange={()=>setDhcpForm(!dhcpForm)} />
         </p>
@@ -94,7 +136,18 @@ export function WifiPage(props) {
     </Form>
     <Button onClick={() => setSaveModal(true)}>{loc.globalSave}</Button>
     </>;
-    
+/*
+
+        <p><label htmlFor="ssid"><Wifi /> {loc.wifiSSID}:</label>
+            <input type="text" id="ssid" name="ssid" autoCapitalize="none" />
+        </p>
+        <p><label htmlFor="pass"><Lock /> {loc.wifiPass}:</label>
+            <input type="text" id="pass" name="pass" autoCapitalize="none" />
+        </p>   
+        <p><label htmlFor="bssid"><Lock /> {loc.bssid}:</label>
+            <input type="text" id="bssid" name="bssid" autoCapitalize="none" />
+        </p>   
+*/    
     let page = <><h2>{loc.titleWifi}</h2> 
         <h3>{loc.globalStatus}</h3></>;
     

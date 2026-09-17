@@ -21,7 +21,7 @@
     "wifiForget": "Esquecer",
     "wifiUpdate": "Atualizar credenciais",
     "wifiCP": "Portal está ativo",
-    "wifiModal1": "Tem certeza? Se continuar o portal será iniciado.",
+    "wifiModal1": "Bist du dir sicher? Beim fortsetzen werden die WLAN-Daten gelöscht und ein Neustart durchgefuehrt!",
     "wifiModal2": "Tem certeza? Se continuar o acesso na rede atual será perdido.",
     "dashEmpty": "Não há itens definidos no arquivo JSON.",
     "dashLive": "Ativo",
@@ -54,6 +54,7 @@
     "fwModal3": "O dispositivo está reiniciando. Por favor aguarde alguns segundos e atualize a página.",
     "VersionenTitle": "Versions",
     "LibraryTitle": "Liraries",
+    "bssid": "Mac-Adresse Router",
     "DiagDisplay": "Diagsdisplay",
     "DelLogfile": "Log löschen",
     "DiagLogfile": "Log anzeigen"

@@ -15,16 +15,25 @@ For documentation please see [original documentation](https://github.com/maakbaa
 
 
 ### Changes to original version from maakbas
-* SSL certificate storeage is removed
+* SSL certificate storage is removed
 * standard esp32 timesync library is used
 * standard esp32 littlefs filesystem is used
 * option to use over the air upodates just by a download url to prevent downloading firmware to file system befor OTA
-* diagnostic manager added to monitor variables and logging information via html website
+* diagnostic manager added to monitor variables and logging information via html website including diagnostic after death with diagnose.log file
 * nvs manager for support of non volaitile storage of data added
+* wifi manager to support connection to a dedicated bssid (mac adress)
 * checkbox in dashboard page as on/off switch
 * node_modules directory now in project root folder, so no changes in library folder are made while building the project
 * generated directory for automatic generated src files  in project root src folder, so no changes in library folder are made while building the project
 
+## New general features  
+### Support of diagnostic after death with diagnose.log file
+You can write a text file diagnose.log in the littlefs filesystem, to store diagnostic data before of a chrash or reboot
+If this file exists in die diagnostic manager two buttons will shown to download or delete this file
+
+### Support of connection to a dedicated bssid (mac adress)
+In the WifiManager page you can store a mac adress of a specific access point if the wifi have several access points with the same ssid. If the syste will establis a wifi connection, a connection to the accesspoint with this mac adress is performed at first, if this fails a standard wifi connection to the specific ssid will be performed, if this also fails a captiv portal wit ip adress 192.168.4.1 is startet.
+If you press "reset wifi" in the wifimanager page, the stored wifi credential are deleted and a restart of the esp will be performed. Because of missing wifi credentials a captive portal is the started. This is done this way because it was not possible to start a captive portal while the webserver is serving existing pages and websockets without a chrash of async tcp stack 
 
 ## New features in dashboard and configuration page 
 
@@ -103,7 +112,6 @@ You have to load the historical data array with corresponding data i.e.
 ```
 You can at least transmit 2 datasets (array of 10 elements) of historical data to the dashboard
 therefore use the type historic1 and historic2 in dashboard.json and dash.historicdata1 and dash.historicdata2 in the esp code
-
 
 ## Requirements
 This Library requires adruino espressif framework 3.3.9 from the pioarduino project  

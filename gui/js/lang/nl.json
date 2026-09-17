@@ -21,7 +21,7 @@
     "wifiForget": "Vergeten",
     "wifiUpdate": "Gegevens wijzigen",
     "wifiCP": "Captive portal is actief",
-    "wifiModal1": "Weet je het zeker? Als je doorgaat wordt een captive portal gestart.",
+    "wifiModal1": "Bist du dir sicher? Beim fortsetzen werden die WLAN-Daten gelöscht und ein Neustart durchgefuehrt!",
     "wifiModal2": "Weet je het zeker? Als je doorgaat wordt de verbinding met je huidige netwerk wellicht verbroken.",
     "dashEmpty": "Er zijn geen regels gedefinieerd in het JSON bestand.",
     "dashLive": "LIVE",
@@ -60,6 +60,7 @@
 	"diagResetMachineQuest":  "Really reset Device ?",
 	"diagLastActTime":  "last refresh (nl)",
     "globalShowWifi": "show wifi networks",
+    "bssid": "Mac-Adresse Router",
     "DiagDisplay": "Diagsdisplay",
     "DelLogfile": "Log löschen",
     "DiagLogfile": "Log anzeigen"

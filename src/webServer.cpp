@@ -71,8 +71,10 @@ void webServer::WifiGetResult(String& JSON,const bool bScan)
 
     jsonBuffer.set("captivePortal",WiFiManager.isCaptivePortal());
     jsonBuffer.set("ssid",WiFiManager.SSID());
+    jsonBuffer.set("pass",WiFiManager.PASS());
     jsonBuffer.set("strength",String(WiFiManager.RSSI()));
     jsonBuffer.set("bssid",String(WiFiManager.BSSID()));
+    jsonBuffer.set("confbssid",String(WiFiManager.ConfBSSID()));
     // Serial.printf("Get Wifi\n");
     String str,strenc;
     //nun noch die Wlanscandaten 
@@ -126,13 +128,13 @@ void webServer::bindAll()
     //update WiFi details
     server.on(PSTR("/api/wifi/set"), HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(200, PSTR("text/html"), ""); //respond first because of wifi change
-        WiFiManager.setNewWifi(request->arg("ssid"), request->arg("pass"));
+        WiFiManager.setNewWifi(request->arg("ssid"), request->arg("pass"), request->arg("bssid"));
     });
 
     //update WiFi details with static IP
     server.on(PSTR("/api/wifi/setStatic"), HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(200, PSTR("text/html"), ""); //respond first because of wifi change
-        WiFiManager.setNewWifi(request->arg("ssid"), request->arg("pass"), request->arg("ip"), request->arg("sub"), request->arg("gw"), request->arg("dns"));
+        WiFiManager.setNewWifi(request->arg("ssid"), request->arg("pass"), request->arg("bssid"), request->arg("ip"), request->arg("sub"), request->arg("gw"), request->arg("dns"));
     });
 
     //update WiFi details

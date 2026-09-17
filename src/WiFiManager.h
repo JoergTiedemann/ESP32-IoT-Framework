@@ -13,6 +13,7 @@ class WifiManager
 private:
     DNSServer *dnsServer;
     String ssid;
+    String bssid;
     String pass;
     IPAddress ip;
     IPAddress gw;
@@ -20,13 +21,14 @@ private:
     IPAddress dns;
     bool reconnect = false;
     bool inCaptivePortal = false;
+    bool serverRunning;
     char const *captivePortalName;
     unsigned long timeout = 60000;
     void startCaptivePortal(char const *apName);
     void stopCaptivePortal();
-    void connectNewWifi(String newSSID, String newPass);    
+    void connectNewWifi(String newSSID, String newPass,String newBssid);    
     void storeToEEPROM();
-    int8_t waitForConnectResult(unsigned long timeoutLengthMs);
+    // int8_t waitForConnectResult(unsigned long timeoutLengthMs);
     bool isIPAddressSet(IPAddress ip);
     std::function<void()> _forgetwificallback;
     std::function<void()> _newwificallback;    
@@ -41,12 +43,15 @@ public :
     void forget();
     bool isCaptivePortal();
     String SSID();
+    String PASS();
     String BSSID();
+    String ConfBSSID();
     long RSSI();
-    void setNewWifi(String newSSID, String newPass);
-    void setNewWifi(String newSSID, String newPass, String newIp, String newSub, String newGw, String newDns);
+    void setNewWifi(String newSSID, String newPass, String newBssid);
+    void setNewWifi(String newSSID, String newPass, String newBssid, String newIp, String newSub, String newGw, String newDns);
     void forgetWiFiFunctionCallback( std::function<void()> func );
     void newWiFiFunctionCallback( std::function<void()> func );
+    bool forceReconnectIfIpLost();
     String StartNetworkscan();
     void GetScanString(FirebaseJsonArray *pwifiInfo);
      ~WifiManager()
