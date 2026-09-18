@@ -101,10 +101,6 @@ void webServer::WifiGetResult(String& JSON,const bool bScan)
 }
 
 bool diagnoseLogExists() {
-    if (!LittleFS.begin()) {
-        // Filesystem nicht gemountet → Datei kann nicht existieren
-        return false;
-    }
     return LittleFS.exists("/diagnose.log");
 }
 

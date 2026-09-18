@@ -46,6 +46,8 @@ public :
     String PASS();
     String BSSID();
     String ConfBSSID();
+    String m_InfoStr;
+    String getInfoStr() { return m_InfoStr; }
     long RSSI();
     void setNewWifi(String newSSID, String newPass, String newBssid);
     void setNewWifi(String newSSID, String newPass, String newBssid, String newIp, String newSub, String newGw, String newDns);

@@ -77,10 +77,11 @@ bool parseMac(const char* macStr, uint8_t mac[6]) {
     for (int i = 0; i < 6; i++) mac[i] = (uint8_t)values[i];
     return true;
 }
-bool tryPreferredBssid(const String& preferredMacStr)
+bool tryPreferredBssid(const String& preferredMacStr,String& InfoStr)
 {
     if (preferredMacStr.length() < 17) {
-        Serial.println("Preferred MAC ungültig");
+        InfoStr = "Preferred MAC ungültig";
+        Serial.println(InfoStr);
         return false;
     }
 
@@ -89,7 +90,8 @@ bool tryPreferredBssid(const String& preferredMacStr)
 
     uint8_t targetBssid[6];
     if (!parseMac(preferredMac, targetBssid)) {
-        Serial.println("Preferred MAC parse Fehler");
+        InfoStr = "Preferred MAC parse Fehler";
+        Serial.println(InfoStr);
         return false;
     }
 
@@ -114,7 +116,8 @@ bool tryPreferredBssid(const String& preferredMacStr)
     esp_wifi_scan_get_ap_num(&apCount);
 
     if (apCount == 0) {
-        Serial.println("Scan: keine APs gefunden");
+        InfoStr = "Scan: keine APs gefunden";
+        Serial.println(InfoStr);
         return false;
     }
 
@@ -146,6 +149,7 @@ bool tryPreferredBssid(const String& preferredMacStr)
 
     if (!found) {
         Serial.println("Bevorzugte BSSID nicht im Scan gefunden");
+        InfoStr = "Bevorzugte BSSID (" + preferredMacStr + ") nicht im Scan gefunden. Gefundene APs: " + String(apCount);
         return false;
     }
 
@@ -173,13 +177,15 @@ bool tryPreferredBssid(const String& preferredMacStr)
     unsigned long start = millis();
     while (millis() - start < 7000) {
         if (WiFi.status() == WL_CONNECTED) {
+            InfoStr = "Verbunden mit bevorzugter BSSID, Kanal: " + String(channel);
             Serial.println("Verbunden mit bevorzugter BSSID!");
             return true;
         }
         delay(100);
     }
 
-    Serial.println("Bevorzugte BSSID nicht erreichbar");
+    InfoStr = "Bevorzugte BSSID nicht erreichbar";
+    Serial.println(InfoStr);
     return false;
 }
 
@@ -224,6 +230,7 @@ void WifiManager::begin(char const *apName, unsigned long newTimeout)
     _newwificallback = NULL;
     NVSManager.begin();
     serverRunning = true;
+    m_InfoStr = "";
 
     WiFi.onEvent(WiFiEvent);
     WiFi.mode(WIFI_STA);
@@ -262,7 +269,7 @@ void WifiManager::begin(char const *apName, unsigned long newTimeout)
 
     // 1) Versuch: bevorzugte BSSID
     if (bssid != "" && bssid.length() >= 17) {
-        if (tryPreferredBssid(bssid)) {
+        if (tryPreferredBssid(bssid,m_InfoStr)) {
             Serial.print("Connected via preferred BSSID, IP: ");
             Serial.println(WiFi.localIP());
             return;
@@ -294,10 +301,12 @@ void WifiManager::begin(char const *apName, unsigned long newTimeout)
 
 bool WifiManager::forceReconnectIfIpLost()
 {
+    m_InfoStr ="";
     // 1) Prüfen ob IP verloren oder nicht verbunden
     if (WiFi.status() == WL_CONNECTED && WiFi.localIP().toString() != "0.0.0.0") {
         // Alles ok → kein Reconnect nötig
-        DiagManager.PushDiagData(msgFehler,"Fehler: Reconnect aufgerufen obwohl Connectiviät besteht");
+        m_InfoStr ="Fehler: Reconnect aufgerufen obwohl Connectiviät besteht";
+        DiagManager.PushDiagData(msgFehler,m_InfoStr);
         return true;
     }
 
@@ -322,7 +331,8 @@ bool WifiManager::forceReconnectIfIpLost()
     String pass = String((char*)conf.sta.password);
 
     if (ssid.length() == 0) {
-        Serial.println("forceReconnectIfIpLost: Keine SSID gespeichert → Captive Portal");
+        m_InfoStr = "forceReconnectIfIpLost: Keine SSID gespeichert → Captive Portal";
+        Serial.println(m_InfoStr);
         startCaptivePortal(captivePortalName);
         return false;
     }
@@ -331,8 +341,9 @@ bool WifiManager::forceReconnectIfIpLost()
     if (bssid != "" && bssid.length() >= 17) {
         Serial.println("forceReconnectIfIpLost: Versuche bevorzugte BSSID…");
 
-        if (tryPreferredBssid(bssid)) {
+        if (tryPreferredBssid(bssid,m_InfoStr)) {
             Serial.println("forceReconnectIfIpLost: Erfolgreich über bevorzugte BSSID verbunden!");
+            m_InfoStr = m_InfoStr + "2) forceReconnectIfIpLost: Erfolgreich über bevorzugte BSSID verbunden!";
             Serial.println(WiFi.localIP());
             return true;
         }
@@ -351,6 +362,7 @@ bool WifiManager::forceReconnectIfIpLost()
     // 5) normale Verbindung
     Serial.println("forceReconnectIfIpLost: Versuche normale SSID-Verbindung…");
     if (tryNormalConnect(7000)) {
+        m_InfoStr = m_InfoStr + "3) forceReconnectIfIpLost: Erfolgreich über SSID verbunden!";
         Serial.println("forceReconnectIfIpLost: Erfolgreich über SSID verbunden!");
         Serial.println(WiFi.localIP());
         return true;
@@ -412,7 +424,7 @@ void WifiManager::connectNewWifi(String newSSID, String newPass, String newBssid
     if (cfg.sta.bssid_set) {
         Serial.println("ConnectNewWifi: Versuche bevorzugte BSSID…");
 
-        if (tryPreferredBssid(newBssid)) {
+        if (tryPreferredBssid(newBssid,m_InfoStr)) {
             Serial.println("ConnectNewWifi: Erfolgreich über bevorzugte BSSID verbunden!");
             Serial.println(WiFi.localIP());
             storeToEEPROM();
