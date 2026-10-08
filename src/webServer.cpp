@@ -4,15 +4,7 @@
 
 #include "FS.h"
 #include <LittleFS.h>
-
-// #define LITTLEFS LittleFS 
-
-// #ifdef ESP32
-//     #include "LITTLEFS.h"
-//     #define LittleFS LITTLEFS
-// #elif defined(ESP8266)
-//     #include "LittleFS.h"
-// #endif
+#include "esp_core_dump.h"
 
 
 
@@ -27,6 +19,179 @@
 #include "DiagManager.h"
 #include "OTAManager.h"
 #include "BoardsInformation.h"
+
+
+const esp_partition_t* getCoredumpPartition() {
+    esp_partition_iterator_t it = esp_partition_find(
+        ESP_PARTITION_TYPE_DATA,
+        ESP_PARTITION_SUBTYPE_DATA_COREDUMP,
+        NULL
+    );
+    if (!it) return nullptr;
+
+    const esp_partition_t* p = esp_partition_get(it);
+    esp_partition_iterator_release(it);
+    return p;
+}
+
+
+static String AnalyzeCoreDump() {
+
+    String out;
+    // Reset-Grund auslesen (für Watchdogs wichtig!)
+    esp_reset_reason_t reason = esp_reset_reason();
+    out += "Reset Reason: ";
+    switch (reason) {
+        case ESP_RST_INT_WDT:   out += "Interrupt Watchdog\n"; break;
+        case ESP_RST_TASK_WDT:  out += "Task Watchdog\n"; break;
+        case ESP_RST_WDT:       out += "General Watchdog\n"; break;
+        case ESP_RST_BROWNOUT:  out += "Brownout Reset\n"; break;
+        case ESP_RST_PANIC:     out += "CPU Exception (Panic)\n"; break;
+        case ESP_RST_SDIO:      out += "Reset over SDIO\n"; break;
+        case ESP_RST_DEEPSLEEP: out += "Reset after exiting deep sleep mode\n"; break;
+        case ESP_RST_SW:        out += "Software reset via esp_restart\n"; break;
+        case ESP_RST_EXT:       out += "Reset by external pin\n"; break;
+        case ESP_RST_POWERON:   out += "Reset due to power-on event\n"; break;
+        case ESP_RST_UNKNOWN:   out += "Reset reason can not be determined\n"; break;
+        default:                out += "Other / Unknown\n"; break;
+    }
+
+    // Initialisiere das Coredump-Subsystem im Flash
+    esp_core_dump_init();
+
+    // 1. Prüfen, ob überhaupt ein gültiger Coredump vorliegt
+    if (esp_core_dump_image_check() == ESP_OK) {
+        out += String("Gueltiger Coredump im Flash gefunden.");
+
+        // Struktur für die Zusammenfassung allokieren
+        esp_core_dump_summary_t summary;
+
+        // 2. Zusammenfassung aus dem Coredump parsen
+        if (esp_core_dump_get_summary(&summary) == ESP_OK) {
+            
+            // Da der ESP32-S3 ein Xtensa-Chip ist, greifen wir auf .ex_info.exc_cause zu
+            uint32_t exccause = summary.ex_info.exc_cause;
+            
+            // Serial.printf(">>> ABSTURZURSACHE (EXCCAUSE): 0x%02X (%d) <<<\n", exccause, exccause);
+
+            // Optionale Zusatzinfos, die ebenfalls in der Summary stecken:
+            char line[256];
+            snprintf(line, sizeof(line),
+                "Abgestuerzter Task: %s\nProgram Counter (PC): 0x%08X\n",
+                summary.exc_task,
+                (unsigned int)summary.exc_pc
+            );
+            out += String(line);
+            // Serial.printf("Abgestuerzter Task: %s\n", summary.exc_task);
+            // Serial.printf("Program Counter (PC): 0x%08X\n", (unsigned int)summary.exc_pc);
+            // Serial.printf("Gefährliche Adresse (EXCVADDR): 0x%08X\n", (unsigned int)summary.ex_info.exc_vaddr);
+
+            // Exception-Typ interpretieren
+            if (reason == ESP_RST_INT_WDT) {
+                out += "Watchdog: Interrupt-WDT hat ausgeloest.\n";
+                return out;
+            }
+            if (reason == ESP_RST_TASK_WDT) {
+                out += "Watchdog: Task-WDT hat ausgeloest.\n";
+                return out;
+            }
+            if (reason == ESP_RST_WDT) {
+                out += "Watchdog: General-WDT hat ausgeloest.\n";
+                return out;
+            }
+
+            // Bekannte Xtensa-Fehlercodes übersetzen
+            switch (exccause) {
+                case 0:
+                    out += String("Bedeutung: IllegalInstructionCause (ungueltiger Befehl / z.B. kaputter Funktionszeiger)");
+                    break;
+                case 1:  
+                    out += String("Hardware-Exception: Syscall (Systemaufruf)");
+                    break;
+                case 2:  
+                    out += String("Hardware-Exception: InstructionFetchError (Fehler beim Laden des Befehls)");
+                    break;
+                case 3:
+                    out += String("Bedeutung: LoadStoreErrorCause (Fehler beim Speicherzugriff / Bus-Fehler)");
+                    break;
+                case 4:  
+                    out += String("Hardware-Exception: Level1Interrupt (Gewoehnlicher CPU-Interrupt)");
+                    break;
+                case 5:  
+                    out += String("Hardware-Exception: AllocaError (Interner Stack-Fenster-Fehler)");
+                    break;
+                case 6:
+                    out += String("Bedeutung: DivideByZeroCause (Division durch Null)");
+                    break;
+                case 8:  
+                    out += String("Hardware-Exception: PrivilegedInstruction (Rechte-Verletzung)");
+                    break;
+                case 9:
+                    out += String("Bedeutung: LoadStoreAlignmentCause (nicht ausgerichteter Speicherzugriff)");
+                    break;
+                case 12: out += String("Hardware-Exception: InstrDataError (Hardware-Uebertragungsfehler Befehl)");
+                    break;
+                case 13: out += String("Hardware-Exception: LoadDataError (Hardware-Uebertragungsfehler Lesen)");
+                    break;
+                case 14: out += String("Hardware-Exception: StoreDataError (Hardware-Uebertragungsfehler Schreiben)");
+                    break;
+                case 15: out += String("Hardware-Exception: InstrAddrError (Ungueltige Befehlsadresse / Flash-Sprung)");
+                    break;
+                case 16: out += String("Hardware-Exception: LoadAddrError (Ungueltige Leseadresse)");
+                    break;
+                case 17: out += String("Hardware-Exception: StoreAddrError (Ungueltige Schreibadresse)");
+                    break;
+                case 18: out += String("Hardware-Exception: ITLBMiss (Virtuelle Befehlsadresse nicht in MMU gefunden)");
+                    break;
+                case 19: out += String("Hardware-Exception: ITLBMultiHit (Schwerer MMU-Konfigurationsfehler)");
+                    break;
+                case 20: out += String("Hardware-Exception: ITLBAccessViolation (Zugriff verweigert / No-Execute Speicher)");
+                    break;
+                case 22: out += String("Hardware-Exception: DTLBMiss (Virtuelle Datenadresse nicht in MMU gefunden)");
+                    break;
+                case 23: out += String("Hardware-Exception: DTLBMultiHit (Schwerer MMU-Konfigurationsfehler Daten)");
+                    break;
+                case 24: out += String("Hardware-Exception: DTLBAccessViolation (Keine Leserechte fuer diesen Speicherbereich)");
+                    break;
+                case 25: out += String("Hardware-Exception: DTLBMuStoreProhibited (Schreibschutz-Verletzung)");
+                    break;
+                case 28:
+                    out += String("Bedeutung: LoadProhibitedCause (Lesen von geschuetzter/Null-Adresse)");
+                    break;
+                case 29:
+                    out += String("Bedeutung: StoreProhibitedCause (Schreiben auf geschuetzte/Null-Adresse)");
+                    break;
+                case 32: 
+                case 33: 
+                case 34: 
+                case 35:
+                case 36: 
+                case 37: 
+                case 38: 
+                case 39: 
+                     out += String("Hardware-Exception: CoprocessorDisabled (FPU oder KI-Beschleuniger deaktiviert)");
+                    break;
+                default: 
+                    char buf[64];
+                    snprintf(buf, sizeof(buf),
+                            "Bedeutung: Andere/Unbekannte CPU-Exception (Code %u)\n",
+                            exccause);
+                    out += buf;
+                    break;
+                }
+        } else {
+            out += String("Fehler beim Lesen der Coredump-Zusammenfassung.");
+        }
+
+        // 3. WICHTIG: Coredump löschen, sonst liest du ihn bei jedem Boot erneut aus!
+        // esp_core_dump_image_erase();
+        
+    } else {
+        out += String("Kein Coredump vorhanden.");
+    }
+  return out;
+}
+
 
 
 void webServer::begin(UpdateDiagDisplayCallback diagDisplayCallback,GetDiagDataCallback pGetDiagDataCallback)
@@ -365,6 +530,70 @@ void webServer::bindAll()
             // Serial.printf("inputbuttoff:%d \n",dash.data.TestDoubleButtonOfff);
             // dash.data.TestDoubleButtonON = 0;
             // dash.data.TestDoubleButtonOfff = 0;
+        });
+
+        // Webserver-Endpoint for coredump information, deletion, and binary download
+        server.on("/coredump.info", HTTP_GET, [](AsyncWebServerRequest *request){
+            const esp_partition_t* p = getCoredumpPartition();
+            if (!p) {
+                request->send(404, "text/plain", "No coredump partition found");
+                return;
+            }
+            String info = AnalyzeCoreDump();
+            request->send(200, "text/plain", info);
+        });
+        server.on("/coredump.delete", HTTP_GET, [](AsyncWebServerRequest *request){
+            const esp_partition_t* p = getCoredumpPartition();
+            if (!p) {
+                request->send(404, "text/plain", "No coredump partition found");
+                return;
+            }
+            esp_partition_erase_range(p, 0, p->size);
+            request->send(200, "text/plain", "Coredump deleted");
+        });
+
+        server.on("/coredump.bin", HTTP_GET, [](AsyncWebServerRequest *request){
+            const esp_partition_t* p = getCoredumpPartition();
+            if (!p) {
+                request->send(404, "text/plain", "No coredump partition found");
+                return;
+            }
+
+            uint32_t marker;
+            esp_partition_read(p, 0, &marker, sizeof(marker));
+
+            if (marker == 0xFFFFFFFF) {
+                request->send(404, "text/plain", "No coredump available");
+                return;
+            }
+
+            // Dump existiert → streamen
+            AsyncResponseStream *response =
+                request->beginResponseStream("application/octet-stream");
+            response->addHeader("Content-Disposition",
+                                "attachment; filename=\"coredump.bin\"");
+
+            const size_t chunk = 4096;
+            uint8_t buffer[chunk];
+
+            size_t remaining = p->size;
+            size_t offset = 0;
+
+            while (remaining > 0) {
+                size_t toRead = remaining > chunk ? chunk : remaining;
+
+                if (esp_partition_read(p, offset, buffer, toRead) != ESP_OK) {
+                    response->print("READ ERROR");
+                    break;
+                }
+
+                response->write(buffer, toRead);
+
+                offset += toRead;
+                remaining -= toRead;
+            }
+
+            request->send(response);
         });
 }
 

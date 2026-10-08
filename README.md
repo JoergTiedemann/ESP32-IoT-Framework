@@ -35,6 +35,14 @@ If this file exists in die diagnostic manager two buttons will shown to download
 In the WifiManager page you can store a mac adress of a specific access point if the wifi have several access points with the same ssid. If the syste will establis a wifi connection, a connection to the accesspoint with this mac adress is performed at first, if this fails a standard wifi connection to the specific ssid will be performed, if this also fails a captiv portal wit ip adress 192.168.4.1 is startet.
 If you press "reset wifi" in the wifimanager page, the stored wifi credential are deleted and a restart of the esp will be performed. Because of missing wifi credentials a captive portal is the started. This is done this way because it was not possible to start a captive portal while the webserver is serving existing pages and websockets without a chrash of async tcp stack 
 
+### Support of coredump handling
+If the cpu chrashed and a coredump partition is defined automatically a coredump is written in this partition. If the cordump is stored to a bin file it can be loaded into ESP Decoder plugin of visual studio and the crash, stacktrace, call stack etc.. can be analyzed 
+For this coredump handling 3  webserver endpoints where added  
+* /coredump.bin to download the coredump via webserver to a bin file
+* /coredump.info to show information aboiut the coredump and the exception type of the coredump cause
+* /coredump.delete to delete the content of the coredump partition
+
+
 ## New features in dashboard and configuration page 
 
 ### Outline of dashboard and configuration page 
