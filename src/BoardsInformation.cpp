@@ -87,7 +87,8 @@ void CBoardsInformation::PrintBoardInformation()
   find_partition("OTA/App Partition",ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, NULL);
   find_partition("OTA/App Partition",ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_1, NULL);
   find_partition("Filesystem Partition",ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_SPIFFS, NULL);
-  Serial.printf("*************************************************************************************************************\n");
+  find_partition("Core Dump Partition",ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_COREDUMP, NULL);
+ Serial.printf("*************************************************************************************************************\n");
  
 }
 /* prints the string that contains all libraries. doesn't require you to know the specific macros. */
