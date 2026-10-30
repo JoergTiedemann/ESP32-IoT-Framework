@@ -14,6 +14,7 @@ const int msgMeldung=2;
 class CVariable
 {
     public : 
+    int m_precision;
     VarType m_type;
     String strVariableText;
     void *pVariableAdress;
@@ -53,8 +54,9 @@ public :
     void AddVariableToMonitor(int index,String strVaiableName, String *VariableAdress);
     void AddVariableToMonitor(int index,String strVaiableName, bool  *VariableAdress);
     void AddVariableToMonitor(int index,String strVaiableName, volatile bool  *VariableAdress);
-    void AddVariableToMonitor(int index,String strVaiableName, float *VariableAdress);
-    void AddVariableToMonitor(int index,String strVariableName, uint16_t *VariableAdress);
+    void AddVariableToMonitor(int index,String strVaiableName, float *VariableAdress, int precision=2);
+    void AddVariableToMonitor(int index,String strVaiableName, volatile float *VariableAdress, int precision=2);
+ void AddVariableToMonitor(int index,String strVariableName, uint16_t *VariableAdress);
     void AddVariableToMonitor(int index,String strVariableName, uint32_t *VariableAdress);
 
     CDiagManager()

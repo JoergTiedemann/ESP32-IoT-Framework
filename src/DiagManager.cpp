@@ -140,11 +140,20 @@ void CDiagManager::AddVariableToMonitor(int index,String strVaiableName, volatil
         m_pVariableMonitor[index].m_type = VarType::tybool;
 }
 
-void CDiagManager::AddVariableToMonitor(int index,String strVariableName, float *VariableAdress)
+void CDiagManager::AddVariableToMonitor(int index,String strVariableName, float *VariableAdress, int precision)
 {
         m_pVariableMonitor[index].strVariableText = strVariableName;
         m_pVariableMonitor[index].pVariableAdress = VariableAdress;
         m_pVariableMonitor[index].m_type = VarType::tyfloat;
+        m_pVariableMonitor[index].m_precision = precision;
+}
+
+void CDiagManager::AddVariableToMonitor(int index,String strVariableName, volatile float *VariableAdress, int precision)
+{
+        m_pVariableMonitor[index].strVariableText = strVariableName;
+        m_pVariableMonitor[index].pVariableAdress = (void*)VariableAdress;
+        m_pVariableMonitor[index].m_type = VarType::tyfloat;
+        m_pVariableMonitor[index].m_precision = precision;
 }
 
 void CDiagManager::AddVariableToMonitor(int index,String strVariableName, uint16_t *VariableAdress)
@@ -198,7 +207,7 @@ String CDiagManager::GetVariableMonitorValue(int iElement)
                 break;        
             case VarType::tyfloat:
                 pfloat = (float*)m_pVariableMonitor[iElement].pVariableAdress;
-                strRet = String(*pfloat);
+                strRet = String(*pfloat,m_pVariableMonitor[iElement].m_precision);
                 break;        
             case VarType::tyuint32:
                 puint32 = (uint32_t*)m_pVariableMonitor[iElement].pVariableAdress;
