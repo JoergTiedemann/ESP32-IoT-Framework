@@ -1,61 +1,109 @@
 # preBuildHTML.py
+
 import os
 import subprocess
-import sys
 import shutil
 from pathlib import Path
 
+
 def preBuildHTMLFun():
     """
-    Führt 'npm run build:esp' im Projekt-Root aus.
-    Projekt-Root wird als vier Ebenen über dem Ordner dieser Datei angenommen.
-    Liefert aussagekräftige Logs und wirft bei Fehlern eine Exception.
+    Kopiert package.template.json aus dem Framework-Verzeichnis
+    ins Projekt-Root als package.json und ersetzt den Platzhalter
+    __WEBPACK_CONFIG__ durch den absoluten Pfad der webpack.config.js.
+
+    Anschließend wird 'npm run build' ausgeführt.
     """
+
     try:
-        # Ordner dieser Datei (Library/config/scripts/...)
+        # Verzeichnis dieser Datei
         script_file = Path(__file__).resolve()
         lib_dir = script_file.parent
 
-        # Projekt-Root: vier Ebenen höher (wie in deinen anderen Skripten)
+        # Projekt-Root bestimmen
         project_root = (lib_dir / ".." / ".." / ".." / ".." / "..").resolve()
 
-        # print("preBuildHTMLFun: script dir:", str(script_file.parent))
-        # print("preBuildHTMLFun: project root (vier Ebenen höher):", str(project_root))
-
-        # Fallback: falls PROJECT_DIR in env gesetzt ist (SCons env), nutze das
+        # Falls PlatformIO PROJECT_DIR gesetzt hat, dieses bevorzugen
         env_project_dir = os.environ.get("PROJECT_DIR")
         if env_project_dir:
             env_root = Path(env_project_dir).resolve()
-            print("preBuildHTMLFun: PROJECT_DIR env gefunden:", str(env_root))
-            # optional: wenn env_root ein plausibler Projekt-Root ist, verwende ihn
-            if (env_root / "package.json").exists():
+            if env_root.exists():
                 project_root = env_root
-                print("preBuildHTMLFun: Verwende PROJECT_DIR als project_root:", str(project_root))
 
-        # Prüfe, ob package.json im project_root existiert
-        pkg = project_root / "package.json"
-        if not pkg.exists():
-            print("preBuildHTMLFun: WARNUNG: package.json im project root nicht gefunden:", str(pkg))
-            # trotzdem versuchen, npm im project_root auszuführen (falls gewünscht)
-        
-        # Bestimme npm-Binary (Windows: npm.cmd wird bevorzugt)
-        npm_bin = shutil.which("npm") or shutil.which("npm.cmd")
+        # Framework-Verzeichnis
+        framework_dir = script_file.parent.parent
+
+        print(f"preBuildHTMLFun: project_root  = {project_root}")
+        print(f"preBuildHTMLFun: lib_dir       = {lib_dir}")
+        print(f"preBuildHTMLFun: framework_dir = {framework_dir}")
+
+        # Dateien im Framework-Verzeichnis
+        template_pkg = framework_dir / "package.template.json"
+        webpack_cfg = framework_dir / "webpack.config.js"
+
+        if not template_pkg.exists():
+            raise FileNotFoundError(
+                f"Template nicht gefunden: {template_pkg}"
+            )
+
+        if not webpack_cfg.exists():
+            raise FileNotFoundError(
+                f"webpack.config.js nicht gefunden: {webpack_cfg}"
+            )
+
+        # Template laden
+        content = template_pkg.read_text(encoding="utf-8")
+
+        # Pfad JSON-kompatibel machen
+        # Forward-Slashes funktionieren auch unter Windows
+        webpack_path = webpack_cfg.resolve().as_posix()
+
+        # Platzhalter ersetzen
+        content = content.replace(
+            "__WEBPACK_CONFIG__",
+            webpack_path
+        )
+
+        # package.json im Projekt-Root erzeugen
+        target_pkg = project_root / "package.json"
+
+        target_pkg.write_text(
+            content,
+            encoding="utf-8"
+        )
+
+        print(f"preBuildHTMLFun: package.json erzeugt: {target_pkg}")
+        print(f"preBuildHTMLFun: webpack.config.js = {webpack_path}")
+
+        # npm suchen
+        npm_bin = shutil.which("npm.cmd") or shutil.which("npm")
+
         if not npm_bin:
-            raise RuntimeError("npm nicht gefunden im PATH. Bitte npm installieren oder PATH anpassen.")
+            raise RuntimeError(
+                "npm wurde nicht im PATH gefunden."
+            )
 
-        # Kommando: npm run build:esp
         cmd = [npm_bin, "run", "build"]
 
-        print("preBuildHTMLFun: Starte:", " ".join(cmd), "im Verzeichnis:", str(project_root))
+        print(
+            f"preBuildHTMLFun: Starte {' '.join(cmd)} "
+            f"im Verzeichnis {project_root}"
+        )
 
-        # Führe das Kommando im project_root aus; gebe stdout/stderr direkt weiter
-        result = subprocess.run(cmd, cwd=str(project_root), shell=False)
+        result = subprocess.run(
+            cmd,
+            cwd=str(project_root),
+            shell=False
+        )
 
         if result.returncode != 0:
-            raise RuntimeError(f"'npm run build' schlug fehl mit Exitcode {result.returncode}")
+            raise RuntimeError(
+                f"'npm run build' fehlgeschlagen "
+                f"(Exitcode {result.returncode})"
+            )
 
-        print("preBuildHTMLFun: 'npm run build' erfolgreich abgeschlossen.")
+        print("preBuildHTMLFun: Build erfolgreich.")
+
     except Exception as e:
-        # Log und re-raise, damit der Build-Prozess die Fehlersituation sieht
         print("preBuildHTMLFun: FEHLER:", str(e))
         raise
